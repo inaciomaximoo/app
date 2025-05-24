@@ -34,7 +34,7 @@
             resize: vertical;
             margin-bottom: 10px;
         }
-        button {
+        button, input[type="file"] {
             padding: 10px 15px;
             color: white;
             border: none;
@@ -45,42 +45,18 @@
             border-radius: 4px;
             transition: background-color 0.3s;
         }
-        .import-btn {
-            background-color: #9C27B0;
-        }
-        .import-btn:hover {
-            background-color: #7B1FA2;
-        }
-        .generate-btn {
-            background-color: #4CAF50;
-        }
-        .generate-btn:hover {
-            background-color: #45a049;
-        }
-        .copy-btn {
-            background-color: #2196F3;
-        }
-        .copy-btn:hover {
-            background-color: #0b7dda;
-        }
-        .clear-btn {
-            background-color: #f44336;
-        }
-        .clear-btn:hover {
-            background-color: #d32f2f;
-        }
-        .add-btn {
-            background-color: #FF9800;
-        }
-        .add-btn:hover {
-            background-color: #e68a00;
-        }
-        .save-btn {
-            background-color: #607D8B;
-        }
-        .save-btn:hover {
-            background-color: #455A64;
-        }
+        .import-btn { background-color: #9C27B0; }
+        .import-btn:hover { background-color: #7B1FA2; }
+        .generate-btn { background-color: #4CAF50; }
+        .generate-btn:hover { background-color: #45a049; }
+        .copy-btn { background-color: #2196F3; }
+        .copy-btn:hover { background-color: #0b7dda; }
+        .clear-btn { background-color: #f44336; }
+        .clear-btn:hover { background-color: #d32f2f; }
+        .add-btn { background-color: #FF9800; }
+        .add-btn:hover { background-color: #e68a00; }
+        .save-btn { background-color: #607D8B; }
+        .save-btn:hover { background-color: #455A64; }
         .format-example {
             background-color: #f8f9fa;
             padding: 15px;
@@ -105,12 +81,8 @@
             background-color: #2196F3;
             color: white;
         }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
         .instructions {
             background-color: #e3f2fd;
             padding: 15px;
@@ -137,9 +109,7 @@
             border-radius: 3px;
             cursor: pointer;
         }
-        .field-group {
-            margin-bottom: 15px;
-        }
+        .field-group { margin-bottom: 15px; }
         .field-group label {
             display: block;
             margin-bottom: 5px;
@@ -152,9 +122,7 @@
             border: 1px solid #ddd;
             border-radius: 4px;
         }
-        .alternatives-container {
-            margin-top: 15px;
-        }
+        .alternatives-container { margin-top: 15px; }
         .alternative-row {
             display: flex;
             align-items: center;
@@ -173,6 +141,12 @@
             padding: 5px;
             border-radius: 4px;
         }
+        #json-upload-btn {
+            background-color: #009688;
+        }
+        #json-upload-btn:hover {
+            background-color: #00796B;
+        }
     </style>
 </head>
 <body>
@@ -180,9 +154,10 @@
         <h1>Gerador de Questões - Importação Fácil</h1>
         
         <div class="tab-container">
-            <div class="tab active" onclick="switchTab('import')">Importar Questões</div>
+            <div class="tab active" onclick="switchTab('import')">Importar via Texto</div>
             <div class="tab" onclick="switchTab('manual')">Adicionar Manualmente</div>
-            <div class="tab" onclick="switchTab('json')">Visualizar JSON</div>
+            <div class="tab" onclick="switchTab('load')">Carregar JSON</div>
+            <div class="tab" onclick="switchTab('json')">Visualizar/Salvar JSON</div>
         </div>
         
         <div id="import-tab" class="tab-content active">
@@ -191,21 +166,21 @@
                 <p>Cole cada questão no formato abaixo (uma por linha, com linha em branco entre questões):</p>
                 <div class="format-example">
                     "enunciado: ++Qual é a capital do Brasil?++
-                    url da foto: (opcional - deixe vazio se não tiver)
-                    a): Rio de Janeiro
-                    b): São Paulo
-                    c): Brasília
-                    d): Salvador
-                    correta: c
-                                    
-                    enunciado: ++Qual destes é um planeta do sistema solar?
-                    (marque todas as opções corretas)++
-                    url da foto: https://exemplo.com/planetas.jpg
-                    a): Terra
-                    b): Lua
-                    c): Marte
-                    d): Sol
-                    correta: a"
+                     url da foto: (opcional - deixe vazio se não tiver)
+                     a): Rio de Janeiro
+                     b): São Paulo
+                     c): Brasília
+                     d): Salvador
+                     correta: c
+                                        
+                     enunciado: ++Qual destes é um planeta do sistema solar?
+                     (marque todas as opções corretas)++
+                     url da foto: https://exemplo.com/planetas.jpg
+                     a): Terra
+                     b): Lua
+                     c): Marte
+                     d): Sol
+                     correta: a,c"
                 </div>
             </div>
             
@@ -217,8 +192,17 @@
         <div id="manual-tab" class="tab-content">
             <button class="add-btn" onclick="addQuestion()">+ Adicionar Nova Questão</button>
             <div id="questions-container">
-                <!-- As questões adicionadas manualmente aparecerão aqui -->
+                </div>
+        </div>
+
+        <div id="load-tab" class="tab-content">
+            <div class="instructions">
+                <h3>Carregar Banco de Questões de Arquivo</h3>
+                <p>Selecione um arquivo <code>.json</code> que você baixou anteriormente para continuar editando.</p>
+                <p><strong>Atenção:</strong> Isso substituirá todas as questões que estão atualmente na aba "Adicionar Manualmente".</p>
             </div>
+            <label for="json-upload" id="json-upload-btn" class="button">Escolher Arquivo JSON</label>
+            <input type="file" id="json-upload" accept=".json" style="display: none;">
         </div>
         
         <div id="json-tab" class="tab-content">
@@ -226,8 +210,7 @@
             <div class="button-group">
                 <button class="generate-btn" onclick="generateJSON()">Atualizar JSON</button>
                 <button class="copy-btn" onclick="copyJSON()">Copiar JSON</button>
-                <button class="save-btn" onclick="saveToFile()">Baixar JSON</button>
-                <button class="save-btn" onclick="embedJSONIntoHTML()">Salvar</button>
+                <button class="save-btn" onclick="saveToFile()">Salvar/Baixar JSON</button>
                 <button class="clear-btn" onclick="clearAll()">Limpar Tudo</button>
             </div>
         </div>
@@ -254,8 +237,10 @@
             const embeddedScript = document.getElementById('embeddedQuestions').textContent;
             try {
                 const questions = JSON.parse(embeddedScript);
-                questions.forEach(q => addQuestion(q, true));
-                generateJSON();
+                if (questions && questions.length > 0) {
+                   questions.forEach(q => addQuestion(q, true));
+                   generateJSON();
+                }
             } catch (e) {
                 console.error("Erro ao carregar questões do HTML:", e);
             }
@@ -266,7 +251,7 @@
             const input = document.getElementById('bulkInput').value.trim();
             if (!input) return;
             
-            const questionBlocks = input.split(/\n\s*\n/); // Divide por linhas em branco
+            const questionBlocks = input.split(/\n\s*\n/);
             let importedCount = 0;
             
             questionBlocks.forEach(block => {
@@ -281,9 +266,13 @@
                 }
             });
             
-            alert(`Foram importadas ${importedCount} questões com sucesso!`);
-            generateJSON();
-            switchTab('manual');
+            if (importedCount > 0) {
+              alert(`Foram importadas ${importedCount} questões com sucesso!`);
+              generateJSON();
+              switchTab('manual');
+            } else {
+              alert("Nenhuma questão encontrada ou formato incorreto. Verifique as instruções.");
+            }
         }
         
         // Analisa um bloco de texto no formato especificado
@@ -296,40 +285,50 @@
                 correta: []
             };
             
+            let currentEnunciado = '';
+            let inEnunciado = false;
+
             lines.forEach(line => {
                 if (line.toLowerCase().startsWith('enunciado:')) {
-                    const match = line.match(/enunciado:\s*\+\+(.*?)\+\+/is);
-                    if (match && match[1]) {
-                        data.enunciado = match[1].trim();
+                    const match = line.match(/enunciado:\s*\+\+(.*)/is);
+                    if (match) {
+                        currentEnunciado = match[1];
+                        if (!currentEnunciado.includes('++')) {
+                            inEnunciado = true;
+                        } else {
+                            currentEnunciado = currentEnunciado.replace('++', '').trim();
+                        }
                     }
-                } 
-                else if (line.toLowerCase().startsWith('url da foto:')) {
-                    const url = line.replace('url da foto:', '').trim();
+                } else if (inEnunciado) {
+                    if (line.includes('++')) {
+                        currentEnunciado += '\n' + line.replace('++', '').trim();
+                        inEnunciado = false;
+                    } else {
+                        currentEnunciado += '\n' + line;
+                    }
+                } else if (line.toLowerCase().startsWith('url da foto:')) {
+                    const url = line.substring('url da foto:'.length).trim();
                     if (url) data.imagem = url;
-                }
-                else if (line.toLowerCase().startsWith('a):')) {
-                    data.alternativas.a = line.replace('a):', '').trim();
-                }
-                else if (line.toLowerCase().startsWith('b):')) {
-                    data.alternativas.b = line.replace('b):', '').trim();
-                }
-                else if (line.toLowerCase().startsWith('c):')) {
-                    data.alternativas.c = line.replace('c):', '').trim();
-                }
-                else if (line.toLowerCase().startsWith('d):')) {
-                    data.alternativas.d = line.replace('d):', '').trim();
-                }
-                else if (line.toLowerCase().startsWith('correta:')) {
-                    const corretas = line.replace('correta:', '').trim().toLowerCase().split(',');
+                } else if (line.toLowerCase().startsWith('a):')) {
+                    data.alternativas.a = line.substring('a):'.length).trim();
+                } else if (line.toLowerCase().startsWith('b):')) {
+                    data.alternativas.b = line.substring('b):'.length).trim();
+                } else if (line.toLowerCase().startsWith('c):')) {
+                    data.alternativas.c = line.substring('c):'.length).trim();
+                } else if (line.toLowerCase().startsWith('d):')) {
+                    data.alternativas.d = line.substring('d):'.length).trim();
+                } else if (line.toLowerCase().startsWith('correta:')) {
+                    const corretas = line.substring('correta:'.length).trim().toLowerCase().split(',');
                     data.correta = corretas.map(c => c.trim()).filter(c => ['a', 'b', 'c', 'd'].includes(c));
                 }
             });
+
+            data.enunciado = currentEnunciado.replace(/\+\+$/,'').trim();
             
-            // Se só tiver uma correta, mantém como string para compatibilidade
             if (data.correta.length === 1) {
                 data.correta = data.correta[0];
             } else if (data.correta.length === 0) {
-                data.correta = 'a'; // Padrão caso não especifique
+                data.correta = 'a';
             }
             
             return data;
@@ -341,7 +340,6 @@
             questionDiv.className = 'question-container';
             questionDiv.id = `question${questionCount}`;
             
-            // Valores padrão ou carregados
             const data = questionData || {
                 enunciado: '',
                 imagem: null,
@@ -349,7 +347,6 @@
                 correta: 'a'
             };
             
-            // Converte correta para array se não for
             const corretaArray = Array.isArray(data.correta) ? data.correta : [data.correta];
             
             questionDiv.innerHTML = `
@@ -370,36 +367,19 @@
                 
                 <div class="alternatives-container">
                     <label>Alternativas:</label>
-                    <div class="alternative-row ${corretaArray.includes('a') ? 'correct-option' : ''}">
-                        <label>a)</label>
-                        <input type="text" id="alt_a_${questionCount}" value="${data.alternativas.a}">
-                        <input type="checkbox" name="correct${questionCount}" value="a" ${corretaArray.includes('a') ? 'checked' : ''}>
-                        <label>Correta</label>
-                    </div>
-                    <div class="alternative-row ${corretaArray.includes('b') ? 'correct-option' : ''}">
-                        <label>b)</label>
-                        <input type="text" id="alt_b_${questionCount}" value="${data.alternativas.b}">
-                        <input type="checkbox" name="correct${questionCount}" value="b" ${corretaArray.includes('b') ? 'checked' : ''}>
-                        <label>Correta</label>
-                    </div>
-                    <div class="alternative-row ${corretaArray.includes('c') ? 'correct-option' : ''}">
-                        <label>c)</label>
-                        <input type="text" id="alt_c_${questionCount}" value="${data.alternativas.c}">
-                        <input type="checkbox" name="correct${questionCount}" value="c" ${corretaArray.includes('c') ? 'checked' : ''}>
-                        <label>Correta</label>
-                    </div>
-                    <div class="alternative-row ${corretaArray.includes('d') ? 'correct-option' : ''}">
-                        <label>d)</label>
-                        <input type="text" id="alt_d_${questionCount}" value="${data.alternativas.d}">
-                        <input type="checkbox" name="correct${questionCount}" value="d" ${corretaArray.includes('d') ? 'checked' : ''}>
-                        <label>Correta</label>
-                    </div>
+                    ${['a', 'b', 'c', 'd'].map(alt => `
+                        <div class="alternative-row ${corretaArray.includes(alt) ? 'correct-option' : ''}">
+                            <label>${alt})</label>
+                            <input type="text" id="alt_${alt}_${questionCount}" value="${data.alternativas[alt] || ''}">
+                            <input type="checkbox" name="correct${questionCount}" value="${alt}" ${corretaArray.includes(alt) ? 'checked' : ''}>
+                            <label>Correta</label>
+                        </div>
+                    `).join('')}
                 </div>
             `;
             
             document.getElementById('questions-container').appendChild(questionDiv);
             
-            // Adiciona listeners para salvar automaticamente
             const inputs = questionDiv.querySelectorAll('input, textarea');
             inputs.forEach(input => {
                 input.addEventListener('input', generateJSON);
@@ -408,7 +388,6 @@
             const checkboxes = questionDiv.querySelectorAll('input[type="checkbox"]');
             checkboxes.forEach(checkbox => {
                 checkbox.addEventListener('change', function() {
-                    // Atualiza destaque da alternativa correta
                     const container = this.closest('.alternative-row');
                     if (this.checked) {
                         container.classList.add('correct-option');
@@ -427,7 +406,6 @@
             if (confirm('Tem certeza que deseja remover esta questão?')) {
                 document.getElementById(id).remove();
                 generateJSON();
-                // Renumerar as questões restantes
                 const questions = document.querySelectorAll('.question-container');
                 questions.forEach((question, index) => {
                     question.querySelector('h3').textContent = `Questão ${index + 1}`;
@@ -462,7 +440,7 @@
                     c: document.getElementById(`alt_c_${id}`).value,
                     d: document.getElementById(`alt_d_${id}`).value
                 },
-                correta: corretas.length === 1 ? corretas[0] : corretas
+                correta: corretas.length === 1 ? corretas[0] : (corretas.length > 1 ? corretas : 'a')
             };
         }
         
@@ -476,7 +454,12 @@
         
         // Salva o JSON em um arquivo
         function saveToFile() {
+            generateJSON(); // Garante que o JSON está atualizado
             const data = document.getElementById('jsonOutput').value;
+            if (data === '[]' || data.trim() === '') {
+                alert("Não há questões para salvar!");
+                return;
+            }
             const blob = new Blob([data], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             
@@ -489,32 +472,56 @@
             URL.revokeObjectURL(url);
         }
         
-        // Atualiza o <script> embutido com o JSON atual
-        function embedJSONIntoHTML() {
-            generateJSON(); // Garante que o JSON está atualizado
-            const jsonData = document.getElementById('jsonOutput').value;
-            document.getElementById('embeddedQuestions').textContent = jsonData;
-            alert('JSON incorporado ao HTML! Salve o arquivo (Ctrl+S) para manter as alterações.');
-        }
-        
         // Limpa todas as questões
         function clearAll() {
             if (confirm('Tem certeza que deseja limpar TODAS as questões? Isso não pode ser desfeito.')) {
                 document.getElementById('questions-container').innerHTML = '';
                 document.getElementById('jsonOutput').value = '[]';
-                document.getElementById('embeddedQuestions').textContent = '[]';
                 document.getElementById('bulkInput').value = '';
                 questionCount = 0;
             }
         }
+
+        // --- NOVA FUNÇÃO PARA UPLOAD DE JSON ---
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                try {
+                    const questions = JSON.parse(content);
+                    if (!Array.isArray(questions)) {
+                        throw new Error("O JSON não é um array de questões.");
+                    }
+
+                    // Limpa as questões existentes
+                    document.getElementById('questions-container').innerHTML = '';
+                    questionCount = 0;
+
+                    // Carrega as novas questões
+                    questions.forEach(q => addQuestion(q, true));
+                    
+                    generateJSON();
+                    alert(`Sucesso! ${questions.length} questões foram carregadas.`);
+                    switchTab('manual');
+
+                } catch (error) {
+                    console.error("Erro ao processar o arquivo JSON:", error);
+                    alert("Erro! O arquivo selecionado não é um JSON válido ou está no formato incorreto.");
+                }
+            };
+            reader.readAsText(file);
+        }
         
         // Inicializa o aplicativo
         window.onload = function() {
+            document.getElementById('json-upload').addEventListener('change', handleFileUpload);
             loadSavedQuestions();
         };
     </script>
 
-    <!-- Script que armazena as questões (editável manualmente) -->
     <script id="embeddedQuestions" type="application/json">
         []
     </script>

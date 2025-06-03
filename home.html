@@ -13,19 +13,20 @@
             --primary: #2979ff;
             --primary-dark: #1c54b2;
             --accent: #00c853;
-            --accent-light: #69f0ae;
+            --accent-light: rgba(0, 200, 83, 0.15); /* Ajustado para melhor visibilidade com fundo */
             --danger: #f44336;
-            --danger-light: #ffebee;
+            --danger-light: rgba(244, 67, 54, 0.1);
             --text: #263238;
             --text-light: #546e7a;
             --border: #cfd8dc;
-            --card-bg: #ffffff; /* Fundo dos cards e também será usado para o avatar */
+            --card-bg: #ffffff;
             --shadow-color: rgba(0, 0, 0, 0.1);
             --disabled-bg: #e0e0e0;
             --disabled-text: #9e9e9e;
             --transition-speed: 0.3s;
-            --button-hover-bg: #1a252f;
+            --button-hover-bg: #e0e0e0; /* Cor de hover para botões no modo claro */
             --input-bg: #fff;
+            --section-bg: #fdfdff; /* Fundo das seções temáticas */
         }
 
         body.dark-mode {
@@ -40,12 +41,13 @@
             --text: #e5e7eb;
             --text-light: #9ca3af;
             --border: #4b5563;
-            --card-bg: #374151;
-            --shadow-color: rgba(0, 0, 0, 0.3);
+            --card-bg: #2d3748; /* Alterado para um cinza um pouco mais claro que o --button-hover-bg */
+            --shadow-color: rgba(0, 0, 0, 0.4); /* Sombra mais pronunciada no escuro */
             --disabled-bg: #4b5563;
             --disabled-text: #9ca3af;
-            --button-hover-bg: #4b5563;
-            --input-bg: #4b5563;
+            --button-hover-bg: #374151; /* Cor de hover para botões no modo escuro */
+            --input-bg: #374151;
+            --section-bg: #374151; /* Fundo das seções temáticas no modo escuro */
         }
 
         * {
@@ -91,11 +93,11 @@
             background: var(--card-bg);
             border: 1px solid var(--border);
             color: var(--text-light);
-            width: 40px;
-            height: 40px;
+            width: 44px; /* Levemente maior */
+            height: 44px; /* Levemente maior */
             border-radius: 50%;
             cursor: pointer;
-            font-size: 1.3rem;
+            font-size: 1.5rem; /* Ajustado para ícones de emoji */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -104,19 +106,12 @@
             box-shadow: 0 2px 5px var(--shadow-color);
         }
         .dark-mode-toggle-button:hover {
-            background-color: var(--primary-light);
+            background-color: var(--button-hover-bg);
             border-color: var(--primary);
-            color: var(--primary-dark);
+            color: var(--primary); /* Cor do ícone no hover */
             transform: scale(1.1);
         }
-        body.dark-mode .dark-mode-toggle-button {
-            background: var(--card-bg);
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-         body.dark-mode .dark-mode-toggle-button:hover {
-            background-color: var(--button-hover-bg);
-         }
+      
 
         .app-header {
             display: flex;
@@ -143,8 +138,8 @@
             border: 4px solid var(--primary);
             box-shadow: 0 4px 12px var(--shadow-color);
             object-fit: cover;
-            background-color: var(--card-bg);
-            transition: border-color var(--transition-speed), background-color var(--transition-speed);
+            background-color: var(--card-bg); 
+            transition: border-color var(--transition-speed), background-color var(--transition-speed), box-shadow var(--transition-speed);
         }
 
         .app-title {
@@ -158,16 +153,13 @@
 
         .theme-section {
             padding: 25px;
-            background-color: #fdfdff;
+            background-color: var(--section-bg); 
             border-radius: 12px;
             border: 1px solid var(--border);
             box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-            transition: background-color var(--transition-speed), border-color var(--transition-speed);
+            transition: background-color var(--transition-speed), border-color var(--transition-speed), box-shadow var(--transition-speed);
         }
-        body.dark-mode .theme-section {
-            background-color: rgba(255,255,255,0.03);
-        }
-
+       
         .theme-title {
             font-size: 1.5rem; font-weight: 600; color: var(--primary); margin-bottom: 20px;
             padding-bottom: 10px; border-bottom: 1px solid var(--border); text-align: center;
@@ -185,6 +177,7 @@
             box-shadow: 0 4px 10px rgba(41, 121, 255, 0.2); text-decoration: none;
         }
          body.dark-mode .theme-section .button {
+            color: var(--text); /* Texto do botão mais claro no modo escuro */
             box-shadow: 0 4px 10px rgba(0,0,0, 0.3);
          }
 
@@ -227,15 +220,16 @@
         }
         #pinInput:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px var(--primary-light);
+            box-shadow: 0 0 0 3px var(--accent-light); /* Usando accent-light para o foco */
         }
-        body.dark-mode #pinInput:focus {
-            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3); /* Cor --primary do modo escuro com alfa */
-        }
-
+      
         #submitPinButton {
             background-color: var(--primary);
+            color: white;
         }
+         body.dark-mode #submitPinButton {
+            color: var(--text);
+         }
         #submitPinButton:hover {
             background-color: var(--primary-dark);
         }
@@ -261,29 +255,28 @@
             width: 100%;
             height: 100%;
             border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+            box-shadow: 0 10px 40px var(--shadow-color);
             overflow: hidden;
             display: flex;
             flex-direction: column;
             animation: slideUpFadeInModal 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
             opacity: 0;
-            transition: background-color var(--transition-speed);
+            transition: background-color var(--transition-speed), box-shadow var(--transition-speed);
         }
         .iframe-header {
             padding: 8px 15px;
             text-align: right;
-            background-color: #e9ecef;
+            background-color: var(--button-hover-bg); /* Usando uma cor neutra */
             border-bottom: 1px solid var(--border);
             transition: background-color var(--transition-speed), border-color var(--transition-speed);
             flex-shrink: 0;
         }
-        body.dark-mode .iframe-header {
-            background-color: var(--button-hover-bg);
-        }
+       
         #closeIframeButton {
             font-size: 1.8rem; font-weight: bold; line-height: 1;
             cursor: pointer; border: none; background: transparent;
             color: var(--text-light); padding: 5px;
+            transition: color var(--transition-speed);
         }
         #closeIframeButton:hover { color: var(--text); }
         #contentIframe {
@@ -292,30 +285,75 @@
             border: none;
         }
 
+        .avatar-modal-overlay {
+            display: none; 
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center; align-items: center;
+            z-index: 4000;
+            animation: fadeIn 0.3s ease;
+        }
+        .avatar-modal-content-box {
+            background-color: var(--card-bg);
+            padding: 25px; border-radius: 12px;
+            box-shadow: 0 8px 30px var(--shadow-color);
+            width: 90%; max-width: 500px; 
+            text-align: center;
+            animation: slideUpFadeInModal 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            opacity: 0;
+        }
+        .avatar-modal-content-box h2 {
+            color: var(--primary-dark);
+            font-size: 1.6rem; margin-bottom: 20px;
+        }
         .avatar-grid {
-            background-color: rgba(0,0,0,0.03);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 15px; margin-bottom: 25px;
+            max-height: 50vh; overflow-y: auto;
+            padding: 10px;
+            background-color: var(--button-hover-bg); /* Fundo sutil para a grade */
+            border-radius: 8px;
             border: 1px solid var(--border);
             transition: background-color var(--transition-speed), border-color var(--transition-speed);
         }
-        body.dark-mode .avatar-grid {
-            background-color: rgba(255,255,255,0.05);
+      
+        .avatar-option {
+            width: 100%; padding-top: 100%; 
+            position: relative; border-radius: 8px;
+            overflow: hidden; cursor: pointer;
+            border: 3px solid transparent;
+            transition: border-color 0.2s ease, transform 0.2s ease;
         }
-
+        .avatar-option img {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+        }
         .avatar-option:hover {
             border-color: var(--primary-light);
+            transform: scale(1.05);
         }
         .avatar-option.selected-preview {
             border-color: var(--accent);
             box-shadow: 0 0 10px var(--accent-light);
         }
         #closeAvatarModalBtn {
-            background-color: var(--text-light);
+            display: inline-block;
+            background-color: var(--text-light); color: white;
+            padding: 10px 25px; border: none;
+            border-radius: 8px; cursor: pointer;
+            font-weight: 600; font-size: 0.9rem;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
         }
         #closeAvatarModalBtn:hover {
             background-color: var(--text);
         }
         body.dark-mode #closeAvatarModalBtn {
              background-color: var(--disabled-bg);
+             color: var(--text);
         }
          body.dark-mode #closeAvatarModalBtn:hover {
              background-color: var(--button-hover-bg);
@@ -332,7 +370,7 @@
             .app-title { font-size: 1.9rem; }
             .theme-title { font-size: 1.4rem; }
             .theme-section .button { padding: 12px 20px; font-size: 0.95rem;}
-            .dark-mode-toggle-button { top: 15px; right: 15px; width: 38px; height: 38px; font-size: 1.1rem;}
+            .dark-mode-toggle-button { top: 15px; right: 15px; width: 40px; height: 40px; font-size: 1.2rem;}
 
             #iframeViewer { padding: 10px; }
             .iframe-header { padding: 6px 12px; }
@@ -350,7 +388,7 @@
             .pin-modal-content { padding: 25px 20px; }
             .pin-modal-content h2 { font-size: 1.5rem; }
             #pinInput { padding: 12px; font-size: 1rem; }
-            .dark-mode-toggle-button { top: 10px; right: 10px; width: 35px; height: 35px; font-size: 1rem;}
+            .dark-mode-toggle-button { top: 10px; right: 10px; width: 38px; height: 38px; font-size: 1.1rem;}
 
             .avatar-grid { grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 8px;}
             .avatar-modal-content-box h2 { font-size: 1.4rem; }
@@ -452,10 +490,10 @@
 
         const darkModeToggleButton = document.getElementById('darkModeToggle');
         const bodyElement = document.body;
-        const darkModeKey = 'userDarkModePreference_v2';
+        const darkModeKey = 'userDarkModePreference_v3'; // Chave atualizada para consistência
 
         const localStorageKeyAccess = 'codigoturma36';
-        const localStorageKeyAvatar = 'studyAppSelectedAvatar_v1';
+        const localStorageKeyAvatar = 'studyAppSelectedAvatar_v2'; // Chave atualizada
         const validPins = ["DG5990I"]; 
 
         const avatarImageLinks = [
@@ -476,14 +514,16 @@
         };
 
         function applyDarkMode(isDark) {
-            if (isDark) {
-                bodyElement.classList.add('dark-mode');
-                darkModeToggleButton.textContent = '☀️';
-                darkModeToggleButton.title = "Mudar para Modo Claro";
-            } else {
-                bodyElement.classList.remove('dark-mode');
-                darkModeToggleButton.textContent = '🌙';
-                darkModeToggleButton.title = "Mudar para Modo Noturno";
+            if (darkModeToggleButton) { // Verifica se o botão existe
+                if (isDark) {
+                    bodyElement.classList.add('dark-mode');
+                    darkModeToggleButton.textContent = '☀️';
+                    darkModeToggleButton.title = "Mudar para Modo Claro";
+                } else {
+                    bodyElement.classList.remove('dark-mode');
+                    darkModeToggleButton.textContent = '🌙';
+                    darkModeToggleButton.title = "Mudar para Modo Noturno";
+                }
             }
         }
 
@@ -508,27 +548,38 @@
         }
 
         function showPinModal() {
-            homepageCard.style.display = 'none';
-            iframeViewer.style.display = 'none';
-            avatarModalOverlay.style.display = 'none';
-            pinModalContainer.style.display = 'flex';
-            pinModalContainer.querySelector('.pin-modal-content').style.opacity = '1';
-            pinInput.value = '';
-            pinInput.focus();
-            pinErrorMessage.textContent = '';
-            pinErrorMessage.style.visibility = 'hidden';
+            if(homepageCard) homepageCard.style.display = 'none';
+            if(iframeViewer) iframeViewer.style.display = 'none';
+            if(avatarModalOverlay) avatarModalOverlay.style.display = 'none';
+            if(pinModalContainer) {
+                pinModalContainer.style.display = 'flex';
+                const content = pinModalContainer.querySelector('.pin-modal-content');
+                if(content) content.style.opacity = '1';
+            }
+            if(pinInput) {
+                pinInput.value = '';
+                pinInput.focus();
+            }
+            if(pinErrorMessage) {
+                pinErrorMessage.textContent = '';
+                pinErrorMessage.style.visibility = 'hidden';
+            }
         }
 
         function hidePinModal() {
-            pinModalContainer.querySelector('.pin-modal-content').style.opacity = '0';
-            setTimeout(() => { pinModalContainer.style.display = 'none'; }, 300);
+            if(pinModalContainer) {
+                const content = pinModalContainer.querySelector('.pin-modal-content');
+                if(content) content.style.opacity = '0';
+                setTimeout(() => { pinModalContainer.style.display = 'none'; }, 300);
+            }
         }
 
         function showHomepageContent() {
             hidePinModal();
-            iframeViewer.style.display = 'none';
-            avatarModalOverlay.style.display = 'none';
-            homepageCard.style.display = 'block';
+            if(iframeViewer) iframeViewer.style.display = 'none';
+            if(avatarModalOverlay) avatarModalOverlay.style.display = 'none';
+            if(homepageCard) homepageCard.style.display = 'block';
+            
             mainContentButtons.forEach(button => {
                 button.disabled = false;
                 if (!button.hasAttribute('data-listener-added')) {
@@ -545,45 +596,50 @@
         }
 
         function handlePinSubmit() {
+            if(!pinInput) return;
             const enteredPin = pinInput.value.trim().toUpperCase();
             if (validPins.includes(enteredPin)) {
                 grantAccess();
             } else {
-                pinErrorMessage.textContent = 'PIN inválido. Tente novamente.';
-                pinErrorMessage.style.visibility = 'visible';
+                if(pinErrorMessage){
+                    pinErrorMessage.textContent = 'PIN inválido. Tente novamente.';
+                    pinErrorMessage.style.visibility = 'visible';
+                }
                 pinInput.value = '';
                 pinInput.focus();
             }
         }
 
-        // MODIFICADO: Todos os botões com URL usarão o iframeViewer
         function handleMainButtonClick(event) {
             const targetId = event.currentTarget.dataset.targetId;
             const url = targetUrls[targetId];
 
-            if (url) { // Se existe uma URL definida para o botão
-                homepageCard.style.display = 'none'; // Esconde o menu principal
-                contentIframe.src = url;
-                iframeViewer.style.display = 'flex'; // Mostra o visualizador do iframe
-                iframeViewer.querySelector('.iframe-window').style.opacity = '1'; // Para animação
-            } else if (targetId === 'btnProvaOSCE' && url === null) { // Caso específico do OSCE
+            if (url) {
+                if(homepageCard) homepageCard.style.display = 'none';
+                if(contentIframe) contentIframe.src = url;
+                if(iframeViewer) {
+                    iframeViewer.style.display = 'flex';
+                    const windowEl = iframeViewer.querySelector('.iframe-window');
+                    if(windowEl) windowEl.style.opacity = '1';
+                }
+            } else if (targetId === 'btnProvaOSCE' && url === null) {
                 alert('A Prova OSCE ainda não está disponível.');
             } else {
-                // Caso para botões que podem não ter uma URL definida ou configurada incorretamente
                 console.warn(`Nenhuma URL de destino configurada para o botão com ID: ${targetId}`);
-                // Poderia adicionar um alert aqui se desejado:
-                // alert(`Conteúdo para "${event.currentTarget.textContent}" não está disponível no momento.`);
             }
         }
 
         if(closeIframeButton) {
             closeIframeButton.addEventListener('click', () => {
-                iframeViewer.querySelector('.iframe-window').style.opacity = '0';
-                setTimeout(() => {
-                    iframeViewer.style.display = 'none';
-                    contentIframe.src = 'about:blank';
-                    homepageCard.style.display = 'block';
-                }, 300);
+                if(iframeViewer){
+                    const windowEl = iframeViewer.querySelector('.iframe-window');
+                    if(windowEl) windowEl.style.opacity = '0';
+                    setTimeout(() => {
+                        iframeViewer.style.display = 'none';
+                        if(contentIframe) contentIframe.src = 'about:blank';
+                        if(homepageCard) homepageCard.style.display = 'block';
+                    }, 300);
+                }
             });
         }
 
@@ -606,7 +662,7 @@
                 img.alt = 'Opção de Avatar';
                 img.addEventListener('click', () => {
                     localStorage.setItem(localStorageKeyAvatar, url);
-                    selectedAvatarDisplay.src = url;
+                    if(selectedAvatarDisplay) selectedAvatarDisplay.src = url;
                     document.querySelectorAll('.avatar-option.selected-preview').forEach(el => el.classList.remove('selected-preview'));
                     img.parentElement.classList.add('selected-preview');
                     setTimeout(() => {
@@ -620,30 +676,38 @@
 
         function openAvatarSelectionModal() {
             populateAvatarGrid();
-            const currentSrc = selectedAvatarDisplay.src;
-            const imagesInGrid = avatarGrid.querySelectorAll('img');
-            imagesInGrid.forEach(img => {
-                if (img.src === currentSrc) {
-                    img.parentElement.classList.add('selected-preview');
-                } else {
-                    img.parentElement.classList.remove('selected-preview');
-                }
-            });
-            avatarModalOverlay.style.display = 'flex';
-            avatarModalOverlay.querySelector('.avatar-modal-content-box').style.opacity = '1';
+            if(selectedAvatarDisplay && avatarGrid){
+                const currentSrc = selectedAvatarDisplay.src;
+                const imagesInGrid = avatarGrid.querySelectorAll('img');
+                imagesInGrid.forEach(img => {
+                    if (img.src === currentSrc) {
+                        img.parentElement.classList.add('selected-preview');
+                    } else {
+                        img.parentElement.classList.remove('selected-preview');
+                    }
+                });
+            }
+            if(avatarModalOverlay){
+                avatarModalOverlay.style.display = 'flex';
+                const contentBox = avatarModalOverlay.querySelector('.avatar-modal-content-box');
+                if(contentBox) contentBox.style.opacity = '1';
+            }
         }
 
         function closeAvatarSelectionModal() {
-            avatarModalOverlay.querySelector('.avatar-modal-content-box').style.opacity = '0';
-            setTimeout(() => {
-                avatarModalOverlay.style.display = 'none';
-            }, 300);
+             if(avatarModalOverlay){
+                const contentBox = avatarModalOverlay.querySelector('.avatar-modal-content-box');
+                if(contentBox) contentBox.style.opacity = '0';
+                setTimeout(() => {
+                    avatarModalOverlay.style.display = 'none';
+                }, 300);
+            }
         }
 
-        if(headerAvatarContainer) { // Verifica se o elemento existe
+        if(headerAvatarContainer) {
             headerAvatarContainer.addEventListener('click', openAvatarSelectionModal);
         }
-        if(closeAvatarModalBtn) { // Verifica se o elemento existe
+        if(closeAvatarModalBtn) {
             closeAvatarModalBtn.addEventListener('click', closeAvatarSelectionModal);
         }
 
@@ -652,7 +716,7 @@
         } else {
             showPinModal();
             mainContentButtons.forEach(button => { button.disabled = true; });
-            if(submitPinButton && pinInput){ // Verifica se os elementos existem
+            if(submitPinButton && pinInput){
                 submitPinButton.addEventListener('click', handlePinSubmit);
                 pinInput.addEventListener('keypress', (event) => {
                     if (event.key === 'Enter') handlePinSubmit();

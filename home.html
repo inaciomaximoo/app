@@ -19,28 +19,28 @@
             --text: #263238;
             --text-light: #546e7a;
             --border: #cfd8dc;
-            --card-bg: #ffffff;
+            --card-bg: #ffffff; /* Fundo dos cards e também será usado para o avatar */
             --shadow-color: rgba(0, 0, 0, 0.1);
             --disabled-bg: #e0e0e0;
             --disabled-text: #9e9e9e;
             --transition-speed: 0.3s;
-            --button-hover-bg: #1a252f; /* Para botões no modo escuro */
+            --button-hover-bg: #1a252f;
             --input-bg: #fff;
         }
 
         body.dark-mode {
-            --bg-gradient-start: #1f2937; /* Azul escuro acinzentado */
-            --bg-gradient-end: #111827;   /* Azul mais escuro */
-            --primary: #60a5fa;          /* Azul claro para contraste */
-            --primary-dark: #3b82f6;      /* Azul um pouco mais escuro que o primário do modo escuro */
-            --accent: #34d399;           /* Verde esmeralda claro */
+            --bg-gradient-start: #1f2937;
+            --bg-gradient-end: #111827;
+            --primary: #60a5fa;
+            --primary-dark: #3b82f6;
+            --accent: #34d399;
             --accent-light: rgba(52, 211, 153, 0.15);
-            --danger: #f87171;            /* Vermelho claro */
+            --danger: #f87171;
             --danger-light: rgba(248, 113, 113, 0.15);
-            --text: #e5e7eb;              /* Cinza muito claro, quase branco */
-            --text-light: #9ca3af;        /* Cinza claro */
-            --border: #4b5563;           /* Cinza médio escuro */
-            --card-bg: #374151;           /* Cinza escuro */
+            --text: #e5e7eb;
+            --text-light: #9ca3af;
+            --border: #4b5563;
+            --card-bg: #374151;
             --shadow-color: rgba(0, 0, 0, 0.3);
             --disabled-bg: #4b5563;
             --disabled-text: #9ca3af;
@@ -80,11 +80,10 @@
             animation: slideUpFadeIn 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
             opacity: 0;
             width: 100%;
-            position: relative; /* Para posicionar o botão de modo noturno */
+            position: relative;
             transition: background-color var(--transition-speed), box-shadow var(--transition-speed);
         }
 
-        /* Botão de Modo Noturno */
         .dark-mode-toggle-button {
             position: absolute;
             top: 20px;
@@ -96,7 +95,7 @@
             height: 40px;
             border-radius: 50%;
             cursor: pointer;
-            font-size: 1.3rem; /* Ajustado para ícones de emoji */
+            font-size: 1.3rem;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -107,18 +106,17 @@
         .dark-mode-toggle-button:hover {
             background-color: var(--primary-light);
             border-color: var(--primary);
-            color: var(--primary-dark); /* Cor do ícone no hover */
+            color: var(--primary-dark);
             transform: scale(1.1);
         }
         body.dark-mode .dark-mode-toggle-button {
             background: var(--card-bg);
             border-color: var(--primary);
-            color: var(--primary); /* Cor do ícone no modo escuro */
+            color: var(--primary);
         }
          body.dark-mode .dark-mode-toggle-button:hover {
             background-color: var(--button-hover-bg);
          }
-
 
         .app-header {
             display: flex;
@@ -131,7 +129,7 @@
         }
 
         .header-avatar-container {
-            margin-bottom: 20px; /* Aumenta espaço abaixo do avatar */
+            margin-bottom: 20px;
             cursor: pointer;
             transition: transform 0.2s ease-in-out;
         }
@@ -139,17 +137,18 @@
             transform: scale(1.05);
         }
         #selectedAvatarDisplay {
-            width: 100px; /* Avatar maior */
-            height: 100px; /* Avatar maior */
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
-            border: 4px solid var(--primary); /* Borda mais grossa */
+            border: 4px solid var(--primary);
             box-shadow: 0 4px 12px var(--shadow-color);
             object-fit: cover;
-            transition: border-color var(--transition-speed);
+            background-color: var(--card-bg);
+            transition: border-color var(--transition-speed), background-color var(--transition-speed);
         }
 
         .app-title {
-            font-size: 2.2rem; /* Título um pouco maior */
+            font-size: 2.2rem;
             font-weight: 700;
             color: var(--primary-dark);
             text-align: center;
@@ -159,14 +158,14 @@
 
         .theme-section {
             padding: 25px;
-            background-color: #fdfdff; /* Será sobrescrito no modo escuro se usar var(--card-bg) por exemplo */
+            background-color: #fdfdff;
             border-radius: 12px;
             border: 1px solid var(--border);
             box-shadow: 0 4px 8px rgba(0,0,0,0.05);
             transition: background-color var(--transition-speed), border-color var(--transition-speed);
         }
         body.dark-mode .theme-section {
-            background-color: rgba(255,255,255,0.03); /* Leve transparência sobre o card-bg */
+            background-color: rgba(255,255,255,0.03);
         }
 
         .theme-title {
@@ -205,13 +204,11 @@
         .theme-section .button:last-child { margin-bottom: 0; }
 
         .pin-modal-container, .avatar-modal-overlay {
-            /* ... estilos existentes ... */
-            background-color: rgba(0,0,0,0.88); /* Overlay um pouco mais escuro */
+            background-color: rgba(0,0,0,0.88);
         }
         .pin-modal-content, .avatar-modal-content-box {
             background-color: var(--card-bg);
             color: var(--text);
-            /* ... outros estilos ... */
             transition: background-color var(--transition-speed), color var(--transition-speed);
         }
         .pin-modal-content h2, .avatar-modal-content-box h2 {
@@ -226,21 +223,18 @@
             background-color: var(--input-bg);
             color: var(--text);
             border: 1px solid var(--border);
-            /* ... outros estilos ... */
             transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color var(--transition-speed), color var(--transition-speed);
         }
         #pinInput:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px var(--primary-light); /* Usar uma variável para a cor do shadow */
+            box-shadow: 0 0 0 3px var(--primary-light);
         }
         body.dark-mode #pinInput:focus {
-             box-shadow: 0 0 0 3px rgba(var(--primary), 0.3);
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3); /* Cor --primary do modo escuro com alfa */
         }
-
 
         #submitPinButton {
             background-color: var(--primary);
-            /* ... outros estilos ... */
         }
         #submitPinButton:hover {
             background-color: var(--primary-dark);
@@ -250,28 +244,56 @@
         }
 
         #iframeViewer {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
             background-color: rgba(0, 0, 0, 0.75);
+            z-index: 3000;
+            padding: 2vh;
+            box-sizing: border-box;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
         }
         .iframe-window {
             background-color: var(--card-bg);
-             transition: background-color var(--transition-speed);
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            animation: slideUpFadeInModal 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            opacity: 0;
+            transition: background-color var(--transition-speed);
         }
         .iframe-header {
+            padding: 8px 15px;
+            text-align: right;
             background-color: #e9ecef;
             border-bottom: 1px solid var(--border);
             transition: background-color var(--transition-speed), border-color var(--transition-speed);
+            flex-shrink: 0;
         }
         body.dark-mode .iframe-header {
-            background-color: var(--button-hover-bg); /* Um cinza mais escuro */
+            background-color: var(--button-hover-bg);
         }
         #closeIframeButton {
-            color: var(--text-light);
+            font-size: 1.8rem; font-weight: bold; line-height: 1;
+            cursor: pointer; border: none; background: transparent;
+            color: var(--text-light); padding: 5px;
         }
         #closeIframeButton:hover { color: var(--text); }
-
+        #contentIframe {
+            width: 100%;
+            flex-grow: 1;
+            border: none;
+        }
 
         .avatar-grid {
-            background-color: rgba(0,0,0,0.03); /* Fundo sutil para a grade */
+            background-color: rgba(0,0,0,0.03);
             border: 1px solid var(--border);
             transition: background-color var(--transition-speed), border-color var(--transition-speed);
         }
@@ -298,7 +320,6 @@
          body.dark-mode #closeAvatarModalBtn:hover {
              background-color: var(--button-hover-bg);
          }
-
 
         @keyframes slideUpFadeIn { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideUpFadeInModal { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
@@ -429,12 +450,11 @@
         const avatarGrid = document.getElementById('avatarGrid');
         const closeAvatarModalBtn = document.getElementById('closeAvatarModalBtn');
 
-        // Modo Noturno
         const darkModeToggleButton = document.getElementById('darkModeToggle');
         const bodyElement = document.body;
-        const darkModeKey = 'userDarkModePreference_v2'; // Chave atualizada para evitar conflitos
+        const darkModeKey = 'userDarkModePreference_v2';
 
-        const localStorageKeyAccess = 'codigoturma36'; // Sua chave de acesso ao PIN
+        const localStorageKeyAccess = 'codigoturma36';
         const localStorageKeyAvatar = 'studyAppSelectedAvatar_v1';
         const validPins = ["DG5990I"]; 
 
@@ -455,15 +475,14 @@
             btnProvaOSCE: null
         };
 
-        // --- Funções Modo Noturno ---
         function applyDarkMode(isDark) {
             if (isDark) {
                 bodyElement.classList.add('dark-mode');
-                darkModeToggleButton.textContent = '☀️'; // Ícone de Sol
+                darkModeToggleButton.textContent = '☀️';
                 darkModeToggleButton.title = "Mudar para Modo Claro";
             } else {
                 bodyElement.classList.remove('dark-mode');
-                darkModeToggleButton.textContent = '🌙'; // Ícone de Lua
+                darkModeToggleButton.textContent = '🌙';
                 darkModeToggleButton.title = "Mudar para Modo Noturno";
             }
         }
@@ -474,22 +493,20 @@
             localStorage.setItem(darkModeKey, !isCurrentlyDark);
         }
         
-        // Aplicar modo noturno salvo ou preferência do sistema
         const savedDarkMode = localStorage.getItem(darkModeKey);
         if (savedDarkMode !== null) {
             applyDarkMode(savedDarkMode === 'true');
         } else {
-            // Opcional: Detectar preferência do sistema operacional
             if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
                  applyDarkMode(true);
              } else {
-                 applyDarkMode(false); // Padrão para modo claro
+                 applyDarkMode(false);
              }
         }
-        darkModeToggleButton.addEventListener('click', toggleDarkModePreference);
+        if(darkModeToggleButton) {
+            darkModeToggleButton.addEventListener('click', toggleDarkModePreference);
+        }
 
-
-        // --- Funções de Acesso e PIN ---
         function showPinModal() {
             homepageCard.style.display = 'none';
             iframeViewer.style.display = 'none';
@@ -511,7 +528,7 @@
             hidePinModal();
             iframeViewer.style.display = 'none';
             avatarModalOverlay.style.display = 'none';
-            homepageCard.style.display = 'block'; // Animação CSS cuida da aparição
+            homepageCard.style.display = 'block';
             mainContentButtons.forEach(button => {
                 button.disabled = false;
                 if (!button.hasAttribute('data-listener-added')) {
@@ -539,44 +556,46 @@
             }
         }
 
+        // MODIFICADO: Todos os botões com URL usarão o iframeViewer
         function handleMainButtonClick(event) {
             const targetId = event.currentTarget.dataset.targetId;
             const url = targetUrls[targetId];
 
-            if (targetId === 'btnProvaAPS') {
-                if (url) {
-                    window.open(url, 'ProvaAPSPopup', 'width=1000,height=700,scrollbars=yes,resizable=yes,status=yes,toolbar=no,menubar=no,location=no');
-                } else {
-                    alert('Link da Prova APS não configurado.');
-                }
-            } else if (url) {
-                homepageCard.style.display = 'none';
+            if (url) { // Se existe uma URL definida para o botão
+                homepageCard.style.display = 'none'; // Esconde o menu principal
                 contentIframe.src = url;
-                iframeViewer.style.display = 'flex';
-                iframeViewer.querySelector('.iframe-window').style.opacity = '1';
-            } else if (targetId === 'btnProvaOSCE' && url === null) {
+                iframeViewer.style.display = 'flex'; // Mostra o visualizador do iframe
+                iframeViewer.querySelector('.iframe-window').style.opacity = '1'; // Para animação
+            } else if (targetId === 'btnProvaOSCE' && url === null) { // Caso específico do OSCE
                 alert('A Prova OSCE ainda não está disponível.');
             } else {
-                console.warn(`Nenhuma URL de destino para o botão com ID: ${targetId}`);
+                // Caso para botões que podem não ter uma URL definida ou configurada incorretamente
+                console.warn(`Nenhuma URL de destino configurada para o botão com ID: ${targetId}`);
+                // Poderia adicionar um alert aqui se desejado:
+                // alert(`Conteúdo para "${event.currentTarget.textContent}" não está disponível no momento.`);
             }
         }
 
-        closeIframeButton.addEventListener('click', () => {
-            iframeViewer.querySelector('.iframe-window').style.opacity = '0';
-            setTimeout(() => {
-                iframeViewer.style.display = 'none';
-                contentIframe.src = 'about:blank';
-                homepageCard.style.display = 'block';
-            }, 300);
-        });
+        if(closeIframeButton) {
+            closeIframeButton.addEventListener('click', () => {
+                iframeViewer.querySelector('.iframe-window').style.opacity = '0';
+                setTimeout(() => {
+                    iframeViewer.style.display = 'none';
+                    contentIframe.src = 'about:blank';
+                    homepageCard.style.display = 'block';
+                }, 300);
+            });
+        }
 
-        // --- Funções de Seleção de Avatar ---
         function loadAndDisplaySelectedAvatar() {
             const savedAvatarUrl = localStorage.getItem(localStorageKeyAvatar) || defaultAvatar;
-            selectedAvatarDisplay.src = savedAvatarUrl;
+            if(selectedAvatarDisplay) {
+                 selectedAvatarDisplay.src = savedAvatarUrl;
+            }
         }
 
         function populateAvatarGrid() {
+            if(!avatarGrid) return;
             avatarGrid.innerHTML = '';
             avatarImageLinks.forEach(url => {
                 const avatarWrapper = document.createElement('div');
@@ -621,19 +640,24 @@
             }, 300);
         }
 
-        headerAvatarContainer.addEventListener('click', openAvatarSelectionModal);
-        closeAvatarModalBtn.addEventListener('click', closeAvatarSelectionModal);
+        if(headerAvatarContainer) { // Verifica se o elemento existe
+            headerAvatarContainer.addEventListener('click', openAvatarSelectionModal);
+        }
+        if(closeAvatarModalBtn) { // Verifica se o elemento existe
+            closeAvatarModalBtn.addEventListener('click', closeAvatarSelectionModal);
+        }
 
-        // --- Lógica Principal de Inicialização ---
         if (localStorage.getItem(localStorageKeyAccess) === 'true') {
             showHomepageContent();
         } else {
             showPinModal();
             mainContentButtons.forEach(button => { button.disabled = true; });
-            submitPinButton.addEventListener('click', handlePinSubmit);
-            pinInput.addEventListener('keypress', (event) => {
-                if (event.key === 'Enter') handlePinSubmit();
-            });
+            if(submitPinButton && pinInput){ // Verifica se os elementos existem
+                submitPinButton.addEventListener('click', handlePinSubmit);
+                pinInput.addEventListener('keypress', (event) => {
+                    if (event.key === 'Enter') handlePinSubmit();
+                });
+            }
         }
     });
     </script>

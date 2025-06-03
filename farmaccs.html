@@ -1,0 +1,3341 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Simulador de Provas Personalizado</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto+Mono&display=swap" rel="stylesheet">
+    
+    <audio id="correctSound" src="correct.mp3" preload="auto"></audio>
+    <audio id="wrongSound" src="wrong.mp3" preload="auto"></audio>
+
+    <style>
+        :root {
+            --bg-main: #f0f2f5;
+            --bg-card: #ffffff;
+            --text-primary: #333333;
+            --text-secondary: #555555;
+            --primary-color: #3a86ff;
+            --primary-light: #69a5ff;
+            --primary-dark: #005cbb;
+            --accent-color: #2ecc71;
+            --accent-light: #e6ffee;
+            --danger-color: #e74c3c;
+            --danger-light: #ffebee;
+            --warning-color: #FF9800; 
+            --warning-light: #FFF3E0;
+            --border-color: #d1d9e6;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --font-main: 'Poppins', sans-serif;
+            --font-mono: 'Roboto Mono', monospace;
+            --border-radius-main: 12px;
+            --transition-speed: 0.3s;
+            --purple-accent: #7c4dff; 
+        }
+
+        .dark-mode {
+            --bg-main: #1e1e2f;
+            --bg-card: #2a2a3a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #9e9e9e;
+            --primary-color: #7c4dff; 
+            --primary-light: #9d7bff;
+            --primary-dark: #5e35b1;
+            --accent-color: #00e676;
+            --accent-light: rgba(0, 230, 118, 0.1);
+            --danger-color: #ff5252;
+            --danger-light: rgba(255, 82, 82, 0.1);
+            --warning-color: #FFA726;
+            --warning-light: rgba(255, 167, 38, 0.15);
+            --border-color: #424242;
+            --shadow-color: rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+            padding: 20px 15px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+            background: var(--bg-card);
+            border-radius: var(--border-radius-main);
+            box-shadow: 0 8px 25px var(--shadow-color);
+            padding: 25px;
+            border: 1px solid var(--border-color);
+            transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center; 
+            margin-bottom: 25px;
+            gap: 15px;
+            width: 100%;
+        }
+        
+        #quizPage .header {
+            flex-direction: row; 
+            justify-content: space-between; 
+        }
+        #quizPage .header h1#quizTitle {
+            margin-bottom: 0; 
+            text-align: left; 
+            flex-grow: 1; 
+        }
+        #quizPage .header .dark-mode-toggle {
+            width: auto; 
+            margin-bottom: 0;
+        }
+
+        
+        #resultsPage .header {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #resultsPage .header h1 {
+            margin-bottom: 0; 
+        }
+        #resultsPage .header .dark-mode-toggle {
+            margin-bottom: 0; 
+            width: auto; 
+        }
+
+
+        h1, h2, h3, h4 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        h1 { font-size: 1.8rem; text-align: center; }
+        h2 { font-size: 1.5rem; }
+        h3 { font-size: 1.3rem; text-align: center; }
+        h4 { font-size: 1.1rem; color: var(--text-secondary); font-weight: 600; }
+
+        .dark-mode-toggle {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 25px;
+            padding: 8px 12px; 
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease, color var(--transition-speed) ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            box-shadow: 0 2px 5px var(--shadow-color);
+            overflow: hidden; 
+        }
+        
+        .dark-mode-toggle:hover {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            border-color: var(--primary-dark);
+        }
+        .dark-mode .dark-mode-toggle:hover {
+            color: #ffffff;
+        }
+
+        .icon-container {
+            position: relative;
+            width: 20px; 
+            height: 20px; 
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .moon-icon, .sun-icon {
+            position: absolute;
+            transition: opacity 0.3s ease-in-out, transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); 
+            font-size: 1rem; 
+            line-height: 1;
+        }
+        .sun-icon {
+            opacity: 0;
+            transform: translateY(100%) rotate(90deg) scale(0.5); 
+        }
+        .moon-icon {
+            opacity: 1;
+            transform: translateY(0) rotate(0deg) scale(1);
+        }
+        .dark-mode .sun-icon {
+            opacity: 1;
+            transform: translateY(0) rotate(0deg) scale(1);
+        }
+        .dark-mode .moon-icon {
+            opacity: 0;
+            transform: translateY(-100%) rotate(-90deg) scale(0.5); 
+        }
+        
+
+        .question-container {
+            background: var(--bg-card);
+            border-radius: var(--border-radius-main);
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            transition: border-color var(--transition-speed) ease, background-color var(--transition-speed) ease;
+        }
+
+        .question-container.correct {
+            border-left: 6px solid var(--accent-color);
+            background-color: var(--accent-light);
+        }
+        .dark-mode .question-container.correct {
+            background-color: rgba(0, 230, 118, 0.05);
+        }
+
+        .question-container.incorrect {
+            border-left: 6px solid var(--danger-color);
+            background-color: var(--danger-light);
+        }
+        .dark-mode .question-container.incorrect {
+            background-color: rgba(255, 82, 82, 0.05);
+        }
+
+        .question-number {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+            font-weight: 600;
+            display: flex; 
+            align-items: center; 
+        }
+        .mistake-stars-container { 
+            margin-left: 10px;
+            display: inline-flex;
+            align-items: center;
+        }
+        .mistake-stars { 
+            font-size: 0.9em; 
+            color: var(--purple-accent); 
+        }
+        .mistake-stars-label {
+            font-size: 0.8em;
+            color: var(--purple-accent);
+            font-weight: normal; 
+            margin-left: 4px;
+        }
+
+
+        .question-text {
+            margin-bottom: 20px;
+            white-space: pre-line;
+            font-family: var(--font-main);
+            line-height: 1.7;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .question-text .ascii-table {
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            background-color: var(--bg-main);
+            padding: 1em;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-top: 1em;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .question-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 15px 0;
+            display: block;
+            box-shadow: 0 4px 10px var(--shadow-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            display: flex;
+            align-items: flex-start;
+            padding: 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: transparent;
+            cursor: pointer;
+            transition: border-color var(--transition-speed) ease, background-color var(--transition-speed) ease, transform 0.2s ease;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .option:hover {
+            border-color: var(--primary-color);
+            background-color: var(--primary-light-translucent, rgba(58, 134, 255, 0.1));
+            transform: translateY(-2px);
+        }
+        .dark-mode .option:hover {
+            background-color: rgba(124, 77, 255, 0.15);
+        }
+
+        .option input[type="radio"] {
+            display: none;
+        }
+
+        .option-letter-styled {
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-right: 10px;
+            line-height: 1.5; 
+        }
+
+        .option-actual-text {
+            flex: 1;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .correct-answer, .explanation {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .correct-answer {
+            color: var(--accent-color);
+            font-weight: 600;
+            background-color: var(--accent-light);
+            border-left: 4px solid var(--accent-color);
+            display: none;
+        }
+
+        .explanation {
+            background-color: var(--bg-main);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            display: none;
+        }
+
+        .navigation {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .nav-button, .action-button, .feedback-continue, .popup-button, .danger-button { 
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: #ffffff;
+            cursor: pointer;
+            font-family: var(--font-main);
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all var(--transition-speed) ease;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 4px 10px var(--shadow-color);
+            display: inline-flex; 
+            align-items: center;
+            justify-content: center;
+        }
+        .dark-mode .nav-button, .dark-mode .action-button, .dark-mode .feedback-continue, .dark-mode .popup-button, .dark-mode .danger-button {
+            color: #ffffff;
+        }
+
+        .nav-button:hover, .action-button:hover, .feedback-continue:hover, .popup-button:hover, .danger-button:hover {
+            background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px var(--shadow-color);
+        }
+        .danger-button {
+            background: linear-gradient(135deg, var(--danger-color), #c0392b ); 
+        }
+        .danger-button:hover {
+            background: linear-gradient(135deg, var(--danger-light), var(--danger-color));
+        }
+        .danger-button .icon, .action-button .icon { 
+             margin-right: 8px;
+        }
+        
+        .expand-button { 
+            padding: 10px 18px;
+            border: 1px solid var(--purple-accent); 
+            border-radius: 8px;
+            background: var(--text-secondary);
+            color: var(--bg-card);
+            cursor: pointer;
+            font-family: var(--font-main);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all var(--transition-speed) ease;
+            width: auto; 
+            display: inline-flex;
+            align-items: center;
+            margin: 0 auto 15px auto;
+            box-shadow: 0 2px 5px var(--shadow-color);
+        }
+        .dark-mode .expand-button {
+            background: var(--text-secondary); 
+            color: var(--bg-card);
+            border: 1px solid var(--primary-light); 
+        }
+        .expand-button:hover {
+            background: var(--primary-color);
+            border-color: var(--primary-color); 
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+        .expand-button .icon {
+            margin-right: 8px;
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+        .expand-button.expanded .icon {
+            transform: rotate(180deg);
+        }
+
+        .nav-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: var(--border-color);
+            color: var(--text-secondary);
+            box-shadow: none;
+        }
+
+        .instant-feedback {
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            display: none;
+            font-size: 1rem;
+            border-left-width: 6px;
+            border-left-style: solid;
+        }
+
+        .instant-feedback.correct {
+            background-color: var(--accent-light);
+            color: var(--accent-color);
+            border-left-color: var(--accent-color);
+        }
+
+        .instant-feedback.incorrect {
+            background-color: var(--danger-light);
+            color: var(--danger-color);
+            border-left-color: var(--danger-color);
+        }
+        
+        /* Estilos para o Popup de Congratulações (já presentes no seu CSS original) */
+        .congrats-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.85); /* Fundo mais escuro para destaque */
+            display: flex;
+            flex-direction: column; /* Para alinhar o conteúdo verticalmente */
+            justify-content: center;
+            align-items: center;
+            z-index: 2000; /* Acima de outros popups */
+            padding: 15px; /* Espaçamento para telas menores */
+        }
+
+        .congrats-content {
+            background: var(--bg-card);
+            padding: 30px; /* Mais padding interno */
+            border-radius: var(--border-radius-main);
+            max-width: 90%; /* Responsividade */
+            width: 400px; /* Largura fixa para consistência */
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); /* Sombra mais pronunciada */
+            border: 1px solid var(--primary-color); /* Borda temática */
+        }
+
+        .congrats-message {
+            font-size: 1.4rem; /* Tamanho da fonte da mensagem */
+            margin-bottom: 20px;
+            color: var(--primary-color); /* Cor temática */
+            font-weight: bold;
+        }
+        .random-iframe {
+            margin: 20px 0; /* Espaçamento para o iframe */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .random-iframe iframe {
+            border-radius: 8px; /* Bordas arredondadas para o iframe */
+        }
+
+        .close-popup-button { /* Reutilizando a classe para o botão de fechar */
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: var(--primary-color);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color var(--transition-speed) ease;
+        }
+        .dark-mode .close-popup-button {
+            color: #ffffff; /* Garante contraste no modo escuro */
+        }
+        .close-popup-button:hover {
+            background: var(--primary-dark);
+        }
+
+
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0s 0.3s;
+            padding: 20px;
+        }
+        .popup-overlay.active {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.3s ease, visibility 0s 0s;
+        }
+        .popup-content {
+            background-color: var(--bg-card);
+            padding: 25px;
+            border-radius: var(--border-radius-main);
+            box-shadow: 0 10px 30px var(--shadow-color);
+            width: 95%;
+            max-width: 450px;
+            max-height: 90vh;
+            overflow-y: auto;
+            text-align: center;
+            position: relative;
+            border: 1px solid var(--border-color);
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        #questionDetailPopup .popup-content { 
+            max-width: 700px; 
+            text-align: left;
+        }
+        #questionDetailPopup .popup-close-button { 
+            position: absolute; 
+            top: 15px; 
+            right: 15px; 
+            background: transparent; 
+            color: var(--text-secondary); 
+            font-size: 1.75rem; 
+            border: none; 
+            padding: 5px;
+            line-height: 1;
+            cursor: pointer;
+        }
+        #questionDetailPopup .popup-close-button:hover {
+             color: var(--primary-color);
+             background: transparent; 
+        }
+
+
+        .popup-overlay.active .popup-content {
+            transform: scale(1);
+        }
+        .popup-close-button { /* Estilo geral para botões de fechar popup, se não for o do congrats */
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: var(--text-secondary);
+            color: var(--bg-card);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color var(--transition-speed) ease;
+            width: auto;
+            display: inline-block;
+        }
+        .dark-mode .popup-close-button {
+            background-color: var(--border-color);
+            color: var(--text-primary);
+        }
+        .popup-close-button:hover {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        #quizOptionsPopupTitle {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 1.4rem;
+        }
+        #quizOptionsPopupSubtitle {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        #quizOptionsPopupButtons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .feedback-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000; 
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0s 0.3s;
+            padding: 20px;
+        }
+        .feedback-popup.active {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.3s ease, visibility 0s 0s;
+        }
+        .feedback-content {
+            background-color: var(--bg-card);
+            padding: 30px;
+            border-radius: var(--border-radius-main);
+            box-shadow: 0 10px 30px var(--shadow-color);
+            width: 95%;
+            max-width: 500px;
+            max-height: 85vh;
+            overflow-y: auto;
+            text-align: center;
+            position: relative;
+            border: 1px solid var(--border-color);
+        }
+        .feedback-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.75rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 0;
+            line-height: 1;
+        }
+        .feedback-close:hover {
+            color: var(--primary-color);
+        }
+        .feedback-title {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .feedback-stats {
+            margin: 12px 0;
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+        .feedback-stats span {
+            font-weight: 600;
+        }
+        .feedback-correct {
+            color: var(--accent-color);
+        }
+        .feedback-incorrect {
+            color: var(--danger-color);
+        }
+        .feedback-percentage {
+            font-size: 1.1rem;
+            margin: 15px 0 25px 0;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        #feedbackPercentageValue { 
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 1.6rem;
+            margin-left: 8px;
+        }
+        #feedbackMistakesList {
+            margin-top: 20px;
+            max-height: 35vh;
+            overflow-y: auto;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+            text-align: left;
+        }
+        #feedbackMistakesList h4 {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .feedback-mistake-item {
+            margin-bottom: 12px;
+            padding: 12px;
+            background-color: var(--bg-main);
+            border-radius: 6px;
+            border-left: 4px solid var(--danger-color);
+            font-size: 0.9rem;
+        }
+        .dark-mode .feedback-mistake-item {
+            background-color: rgba(255,255,255,0.03);
+        }
+        .feedback-mistake-question {
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+        }
+        .feedback-mistake-option {
+            padding: 4px 0;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+        .feedback-mistake-option.feedback-mistake-correct {
+            color: var(--accent-color);
+            border-left: none;
+            background-color: transparent;
+        }
+        .feedback-mistake-option.feedback-mistake-selected {
+            color: var(--danger-color);
+            border-left: none;
+            background-color: transparent;
+        }
+        .feedback-continue {
+            margin-top: 30px;
+        }
+
+        .progress-container {
+            width: 100%;
+            background-color: var(--bg-main);
+            border-radius: 8px;
+            margin: 20px 0;
+            height: 12px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary-color);
+            border-radius: 0;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        #results-main-box {
+            background-color: var(--bg-card);
+            padding: 20px;
+            border-radius: var(--border-radius-main);
+            box-shadow: 0 6px 20px var(--shadow-color);
+            border-top: 5px solid transparent; 
+            margin-top: 25px; 
+            transition: border-color var(--transition-speed) ease;
+        }
+        .results-box-bad { border-top-color: var(--danger-color); }
+        .results-box-average { border-top-color: var(--warning-color); }
+        .results-box-good { border-top-color: var(--accent-color); }
+
+        .stat-card {
+            background: var(--bg-main); 
+            color: var(--text-primary);
+            border-radius: var(--border-radius-main);
+            padding: 20px;
+            box-shadow: 0 4px 10px var(--shadow-color);
+            border: 1px solid var(--border-color);
+            margin-bottom: 25px; 
+        }
+        .dark-mode .stat-card {
+            background: var(--bg-card); 
+        }
+        .dark-mode .stat-card h3, .dark-mode .stat-card h4 {
+            color: var(--primary-color); 
+        }
+        .stat-card h3, .stat-card h4 {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        #main-performance-card .chart-container {
+            height: 280px; 
+            max-height: 40vh; 
+            position: relative; 
+        }
+        .stat-card .chart-container { 
+            height: 200px; 
+            position: relative;
+        }
+        .chart-container canvas { 
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        .final-score-container {
+            text-align: center;
+            margin-bottom: 20px; 
+        }
+        .final-score-label {
+            display: block;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        .final-percentage { 
+            text-align: center;
+            margin-top: 10px; 
+            margin-bottom: 25px; 
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+        .final-percentage strong {
+            color: var(--text-primary); 
+            font-weight: 600;
+        }
+        .dark-mode .final-percentage strong {
+            color: var(--text-primary);
+        }
+
+        .final-score-value-box {
+            display: inline-block;
+            padding: 15px 30px;
+            border-radius: var(--border-radius-main);
+            font-size: 2.5rem;
+            font-weight: 700;
+            line-height: 1;
+            transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease, border-color var(--transition-speed) ease;
+            border: 2px solid transparent;
+            min-width: 150px;
+        }
+        .final-score-value-box.score-bad {
+            background-color: var(--danger-light);
+            color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+        .final-score-value-box.score-average {
+            background-color: var(--warning-light);
+            color: var(--warning-color);
+            border-color: var(--warning-color);
+        }
+        .final-score-value-box.score-good {
+            background-color: var(--accent-light);
+            color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        
+        .stats-grid {
+            display: grid;
+            gap: 20px;
+            grid-template-columns: 1fr; 
+        }
+         .stats-grid > .stat-card {
+            margin-bottom: 0; 
+        }
+        .additional-stats, .questions-review {
+            margin-top: 25px; 
+        }
+
+        .questions-review {
+            text-align: center;
+        }
+        .analysis-content-box {
+            background-color: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-main);
+            padding: 20px;
+            margin-top: 15px;
+            text-align: left;
+        }
+        .dark-mode .analysis-content-box {
+            background-color: rgba(0,0,0,0.1);
+        }
+        
+        .analysis-correct-answer {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: var(--accent-light);
+            border-radius: 6px;
+            border-left: 4px solid var(--accent-color);
+            color: var(--accent-color); 
+            font-size: 0.95rem;
+        }
+        .dark-mode .analysis-correct-answer {
+             background-color: rgba(0, 230, 118, 0.1);
+        }
+        .analysis-correct-answer strong {
+            color: var(--accent-color); 
+            font-weight: bold;
+        }
+
+
+        #resultsPage .actions {
+            display: flex;
+            flex-direction: column; 
+            align-items: center; 
+            gap: 15px;
+            margin-top: 30px; 
+            width: 100%;
+        }
+        #resultsPage .actions .action-button {
+            width: 100%; 
+            max-width: 300px; 
+            flex-grow: 0;
+        }
+
+        .reset-stats-container { 
+            text-align: center;
+            margin-top: 25px; 
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+         #resetStatsBtn.small-reset-button { 
+            font-size: 0.85rem;  
+            padding: 8px 15px;   
+            max-width: 280px;   
+        }
+        #resetStatsBtn { 
+            background: linear-gradient(135deg, var(--danger-color), #c0392b);
+        }
+        #resetStatsBtn:hover {
+             background: linear-gradient(135deg, var(--danger-light), var(--danger-color));
+        }
+         #resetStatsBtn .icon {
+            margin-right: 6px;
+        }
+        #resetStatsBtn:disabled {
+            background: var(--border-color);
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+
+        @media (min-width: 768px) {
+            .container { padding: 35px; }
+            #main-performance-card .chart-container { height: 350px; }
+            .stat-card .chart-container { height: 250px; } 
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .additional-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+            .additional-charts .stat-card { margin-bottom: 0; }
+            .final-score-value-box { padding: 20px 40px; font-size: 3rem; }
+            
+            #resultsPage .actions {
+                 flex-direction: row;
+                 justify-content: center; 
+            }
+             #resultsPage .actions .action-button {
+                 width: auto; 
+                 flex-basis: 220px; 
+                 max-width: 250px;
+            }
+             #resetStatsBtn.small-reset-button { 
+                 width: auto;
+                 flex-basis: auto; 
+                 max-width: 300px;
+            }
+        }
+        @media (max-width: 600px) {
+            #quizPage .header { flex-direction: column; align-items: center; }
+            #quizPage .header h1#quizTitle { text-align: center; margin-bottom: 15px; }
+            #quizPage .header .dark-mode-toggle { width: 100%; }
+        }
+        @media (max-width: 350px) {
+            body { font-size: 14px; padding: 10px; }
+            h1 { font-size: 1.3rem; }
+            .question-container, .question-result { padding: 12px; }
+            .option { padding: 10px; font-size: 0.95rem; }
+            .nav-button, .action-button, .feedback-continue, .expand-button, .popup-button { padding: 10px; font-size: 0.95rem; }
+            .final-score-value-box { font-size: 2rem; padding: 10px 20px;}
+            #main-performance-card .chart-container { height: 250px; }
+            .stat-card .chart-container { height: 180px; } 
+            #resetStatsBtn.small-reset-button { font-size: 0.8rem; padding: 8px 12px; }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="quizPage" style="display:none;"> 
+            <div class="header">
+                <h1 id="quizTitle">Simulador de Provas</h1> 
+                <button class="dark-mode-toggle" id="darkModeToggle">
+                    <span class="icon-container">
+                        <span class="moon-icon">🌙</span>
+                        <span class="sun-icon">☀️</span>
+                    </span>
+                    <span id="darkModeText">Modo Escuro</span>
+                </button>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div id="currentQuestion"></div>
+            <div class="instant-feedback" id="instantFeedback"></div>
+            <div class="navigation">
+                <button onclick="previousQuestion()" id="prevBtn" class="nav-button" disabled>Anterior</button>
+                <button onclick="nextQuestion()" id="nextBtn" class="nav-button">Próxima</button>
+                <button onclick="finishTest()" id="finishBtn" class="nav-button" style="display: none;">Finalizar Prova</button>
+            </div>
+        </div>
+
+        <div id="resultsPage" style="display: none;">
+            <div class="header"> 
+                <h1 id="resultsTitle">Resultados da Prova</h1>  
+                <button class="dark-mode-toggle" id="darkModeToggleResults">
+                     <span class="icon-container"> 
+                        <span class="moon-icon">🌙</span>
+                        <span class="sun-icon">☀️</span>
+                    </span>
+                    <span id="darkModeTextResults">Modo Escuro</span>
+                </button>
+            </div>
+
+            <div id="results-main-box"> 
+                <div class="results-header">
+                    <div class="final-score-container">
+                        <span class="final-score-label">Sua Nota Final:</span>
+                        <div id="finalScoreText" class="final-score-value-box"></div>
+                    </div>
+                    <div class="final-percentage" id="finalPercentageText"></div>
+                </div>
+
+                <div class="stat-card" id="main-performance-card">
+                    <h3>Desempenho Geral</h3>
+                    <div class="chart-container">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card" id="areasChartCard">
+                        <h3>Acertos por Área</h3>
+                        <div class="chart-container">
+                            <canvas id="areasChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Progresso nas Tentativas</h3>
+                        <div class="chart-container">
+                            <canvas id="progressChart"></canvas>
+                        </div>
+                    </div>
+                     <div class="stat-card">
+                        <h3>Questões com Erros</h3>
+                        <div class="chart-container">
+                            <canvas id="mistakesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="additional-stats stat-card"> 
+                    <h3>Estatísticas Adicionais</h3>
+                    <div class="additional-charts">
+                        <div class="stat-card">
+                            <h4 id="questionSizeChartTitle">Tamanho de Questão</h4>
+                            <div class="chart-container">
+                                <canvas id="questionSizeChart"></canvas> 
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Tempo por Questão (Simulado)</h4>
+                            <div class="chart-container">
+                                <canvas id="timePerQuestionChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="questions-review stat-card"> 
+                    <h3>Análise Detalhada por Questão</h3>
+                    <button class="expand-button" id="toggleAnalysisBtn">
+                        <span class="icon">&#x25BC;</span>Expandir Análise
+                    </button>
+                    <div class="analysis-content-box" id="analysisBox" style="display: none;">
+                        <div id="questionsAnalysis"></div>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button onclick="startNewAttempt(false)" class="action-button">Nova Tentativa</button> <button onclick="startNewAttempt(true)" class="action-button">Revisar Erros</button> </div>
+                <div class="reset-stats-container">
+                    <button id="resetStatsBtn" class="action-button danger-button small-reset-button" disabled>
+                        <span class="icon">🗑️</span> Resetar Progresso
+                    </button>
+                </div>
+            </div> 
+        </div>
+    </div>
+
+    <div class="feedback-popup" id="feedbackPopup">
+        <div class="feedback-content">
+            <button class="feedback-close" id="closeFeedback">×</button>
+            <h3 class="feedback-title">Seu desempenho no bloco</h3>
+            <div class="feedback-stats">
+                Você respondeu <span id="feedbackTotal">0</span> questões neste bloco.
+            </div>
+            <div class="feedback-stats">
+                <span class="feedback-correct">Acertos: <span id="feedbackCorrect">0</span></span> | 
+                <span class="feedback-incorrect">Erros: <span id="feedbackIncorrect">0</span></span>
+            </div>
+            <div class="feedback-percentage">
+                Taxa de acertos: <span id="feedbackPercentageValue">0</span>%
+            </div>
+            <div id="feedbackMistakesList"></div>
+            <button class="feedback-continue" id="continueButton">Continuar</button>
+        </div>
+    </div>
+
+    <div class="popup-overlay" id="quizStartOptionsPopup">
+        <div class="popup-content">
+            <h3 id="quizOptionsPopupTitle">Iniciar Simulado</h3>
+            <p id="quizOptionsPopupSubtitle"></p>
+            <div id="quizOptionsPopupButtons">
+            </div>
+            <button class="popup-close-button" onclick="closeQuizOptionsPopup()">Cancelar</button>
+        </div>
+    </div>
+    
+    <div class="popup-overlay" id="questionDetailPopup">
+        <div class="popup-content" style="max-width: 700px; text-align: left;">
+            <button class="popup-close-button" onclick="closeQuestionDetailPopup()" >×</button>
+            <div id="questionDetailContent">
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // ID Fixo para o simulado embutido
+        const EMBEDDED_QUIZ_ID = 'simulado_principal_embutido';
+        let currentFileId = EMBEDDED_QUIZ_ID; // Usar o ID fixo globalmente
+
+        // Chave para estatísticas no localStorage (mantida)
+        const LOCAL_STORAGE_STATS_PREFIX = 'quizApp_stats_';
+
+        // Questões embutidas diretamente no código
+        const embeddedQuestionsSource = [
+  {
+    "enunciado": "Assinale a alternativa CORRETA sobre a sintese de acetilcolina.",
+    "imagem": null,
+    "alternativas": {
+      "a": "A acetilcolina é recapturada integra da fenda sinaptica.",
+      "b": "A colina apresenta carga negativa.",
+      "c": "A acetilcolinesterase é responsável pela sintese de acetilcolina.",
+      "d": "Fosfatidilcolina e Fosforilcolina fornecem substratos para sintese de acetilcolina."
+    },
+    "correta": "d"
+  },
+  {
+    "enunciado": "Sobre a acetilcolinesterase assinale a alternativa correta:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Une a colina an acetato pela introdução de um grupo éster.",
+      "b": "Transfere o grupo acetil para a Coenzima A",
+      "c": "Inativa a Acetilcolina",
+      "d": "Degrada catecolaminas."
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "Sobre receptores muscarinicos do tipo M2 assinale a alternativa correta",
+    "imagem": null,
+    "alternativas": {
+      "a": "São encontrados no intestino e são do tipo canal iõnico.",
+      "b": "Se localizam no tecido neural e são receptores do tipo Gq",
+      "c": "São proteinas do tipo Gi ligadas a Adenilato-ciclase.",
+      "d": "São encontrados na bexiga e são inibidos pela escopolamina"
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "Assinale a alternativa que contenha corretamente os tecidos em que estão presentes os receptores nicotinicos",
+    "imagem": null,
+    "alternativas": {
+      "a": "SNC, ganglios e musculatura esquelética.",
+      "b": "Musculatura lisa, pulmões e SNC",
+      "c": "Intestino, bexiga e glândulas lacrimais.",
+      "d": "Músculo cardiaco, ganglios e SNC"
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "A Beladona foi usada por mulheres com a finalidade estética, ao usarem os extratos da planta Atropo belodono suas pupilas se dilatavam. Esse fenómeno se explica pela sua atividade:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Agonista sobre receptores Beta-2",
+      "b": "Antagonista sobre receptores M3",
+      "c": "Agonista sobre receptores Alfa-1",
+      "d": "Antagonista sobre receptores M2"
+    },
+    "correta": "b"
+  },
+  {
+    "enunciado": "Em quadros de cólicas viscerals quais dos medicamentos abaixo é indicado?",
+    "imagem": null,
+    "alternativas": {
+      "a": "Carbacol",
+      "b": "Pilocarpina",
+      "c": "Brometa de Escopolamina",
+      "d": "Cevimelina."
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "Processos como asma e bronquite reduzem de maneira significativa a luz no bronquio causando problemas leves a graves de oxigenação. Assinale abaixo a alternativa que contenha o mecanismo correto de modulação da proteína G ligada ação do Tiotrópio.",
+    "imagem": null,
+    "alternativas": {
+      "a": "Agonista da Beta-2",
+      "b": "Antagonista M3",
+      "c": "Agonista do Alfa-2",
+      "d": "Antagonista M2"
+    },
+    "correta": "b"
+  },
+  {
+    "enunciado": "Assinale a alternativa que contenha corretamente o mecanismo terapêutico da neostigmina que explica o sucesso terapéutico frente a sua indicação clínica principal:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Bloqueio de receptores M3.",
+      "b": "Aumento da ativação de receptores nicotinicos.",
+      "c": "Inibição de receptores M1 centrais.",
+      "d": "Ativação da MAO em neurônios."
+    },
+    "correta": "b"
+  },
+  {
+    "enunciado": "Sabre a Sindrome de Sjögren assinale abaixo um medicamento utilizado no tratamento sintomático desta patologia",
+    "imagem": null,
+    "alternativas": {
+      "a": "Brometo de escopolamina",
+      "b": "Carbacol.",
+      "c": "Metildopa.",
+      "d": "Cevimelina."
+    },
+    "correta": "d"
+  },
+  {
+    "enunciado": "A Infusão endovenosa de Brometo de Escopolamina pode causar qual dos seguintes efeitos abaixo listados?",
+    "imagem": null,
+    "alternativas": {
+      "a": "Salivação excessiva",
+      "b": "Aumento do peristaltismo",
+      "c": "Aumento da frequência cardiaca",
+      "d": "Lacrimejamento excessivo"
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "Sobre a sintese de catecolaminas assinale a alternativa correta que contenha o aminoácido que dá origem a este grupo de moléculas:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Tirosina",
+      "b": "Isoleucina",
+      "c": "Treonina",
+      "d": "Cisteina"
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Sobre a rota enzimática da sintese de Adrenalina assinale a alternativa que contenha a enzima especificamente relacionada à sua produção",
+    "imagem": null,
+    "alternativas": {
+      "a": "Dopa descarboxilase",
+      "b": "Tirosina hidroxilase",
+      "c": "F-N-Metiltransferase",
+      "d": "Dopamina B-Hidroxilase"
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "Em qual parte do processo de liberação e sintese de catecolaminas a cocaína exerce seu efeito biológico?",
+    "imagem": null,
+    "alternativas": {
+      "a": "Inibe recaptura por meio do NET",
+      "b": "Estimula a degradação por meio da COMT",
+      "c": "Estimula o armazenamento por meio do VMAT",
+      "d": "Inibe a sintese por meio da MAO"
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Inibidores da MAO são comumente utilizados como:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Sedativos",
+      "b": "Anti-hipertensivas",
+      "c": "Antidepressivos",
+      "d": "Broncodilatadores"
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "Assinale a alternativa correto sobre o mecanismo de ação do receptor Alfa-2",
+    "imagem": null,
+    "alternativas": {
+      "a": "Inibição da Adenilato-Ciclase",
+      "b": "Ativação da Fosfolipase C.",
+      "c": "Canal ionico dependente de ligante",
+      "d": "Receptor ligado à quinase"
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Sobre o Salbutamol assinale a alternativa correta",
+    "imagem": null,
+    "alternativas": {
+      "a": "Ativa seletivamente receptores Beta-1",
+      "b": "induz relaxamento da bexiga",
+      "c": "Causa taquicardia",
+      "d": "Bloqueia receptores M3."
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "Sobre o Nebivolol assinale a alternativa correta:",
+    "imagem": null,
+    "alternativas": {
+      "a": "É pouco seletivo para receptores Beta-1",
+      "b": "utilizado em processos como asma.",
+      "c": "Aumenta a dxido nitrico",
+      "d": "Causa broncoconstrição"
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "Selecione corretamente o mecanismo de ação da Prazosina",
+    "imagem": null,
+    "alternativas": {
+      "a": "Antagonista Alfa-1",
+      "b": "Agonista M2",
+      "c": "Antagonista Beta-2.",
+      "d": "Agonista Alfa-2"
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Seleciona abaixo um medicamento capaz de atuar ao mesmo tempo em receptores Beta e Alfa no controle da Hipertensão arterial.",
+    "imagem": null,
+    "alternativas": {
+      "a": "Atenolol",
+      "b": "Doxazosina",
+      "c": "Caverdilol",
+      "d": "Fenilefrina"
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "Qual a principal indicação clínica da Metildopa?:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Asma",
+      "b": "Eclampsia",
+      "c": "Hipotonia de bexiga",
+      "d": "Arritmia"
+    },
+    "correta": "b"
+  },
+  {
+    "enunciado": "Sobre excreção dos fármacos é CORRETO afirmar:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Todos os fármacos apresentam a capacidade de serem filtrados pela capsula de Bowman.",
+      "b": "Farmacos grandes ou ligados a albumina sofrem secreção ativa no túbulo proximal.",
+      "c": "Farmacos grandes ou ligados a albumina são excretados por filtração glomerular.",
+      "d": "Farmacos hidrofilicos que sofreram biotransformação sofrerão excreção entero-hepática."
+    },
+    "correta": "b"
+  },
+  {
+    "enunciado": "Qual fator abaixo pode alterar a excreção do fármaco:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Via de administração.",
+      "b": "Biodisponibilidade.",
+      "c": "pH da urina.",
+      "d": "Volume de distribuição."
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "Caso o fármaco seja lipofilico de metabolismo lento. O que devemos esperar sobre a cinética de eliminação:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Ao chegar nos nes essa será excretada totalmente",
+      "b": "Ao chegar nos rims nada será excretado.",
+      "c": "Ao chegar nos rins sada será excretado, será recirculado voltando ao figado para eliminação entero-hepatica",
+      "d": "Ao chegar nos rins as moléculas hidrofilicas serão excretadas e as moléculas lipofilicos recirculam ate o figado para novo metabolisma"
+    },
+    "correta": "d"
+  },
+  {
+    "enunciado": "Assinale a alternativa CORRETA que apresenta o fármaco que é exemplo de um agente colinomimético de ação indireta",
+    "imagem": null,
+    "alternativas": {
+      "a": "Escepolamina",
+      "b": "Carbacol",
+      "c": "Elednna",
+      "d": "Neostigmina"
+    },
+    "correta": "d"
+  },
+  {
+    "enunciado": "Assinale a alternativa CORRETA que apresenta a contraindicação para a administração de agonistas colinérgicos.",
+    "imagem": null,
+    "alternativas": {
+      "a": "Constipação.",
+      "b": "Xerostomia",
+      "c": "Doença pulmonar obstrutiva",
+      "d": "Diminuição de liberação de protons no estómago"
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "Assinale a alternativa que apresenta os principals efeitos adversos dos antagonistas colinérgicos:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Obstrução do trato urinário e obstrução gastrointestinal.",
+      "b": "Glaucoma de ângulo fechado descontrolado e xerostomia.",
+      "c": "Hiperplasia prostática benigna, constipação e visão turva",
+      "d": "Xerostomia constipação visão turva e dispepsia"
+    },
+    "correta": "d"
+  },
+  {
+    "enunciado": "Qual dos seguintes fármacos seria o mais eficaz como anticinetótico para uma pessoa que planeja um cruzeiro?",
+    "imagem": null,
+    "alternativas": {
+      "a": "Escopolamina.",
+      "b": "Tropicamida.",
+      "c": "Darifenacina",
+      "d": "Atropina"
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "No tratamento da esma terčonuca, frequentemente são utilizadas substâncias broncodilatadoras para o alivio das crises. Dentre as drogas utilizadas, pode-se citar o salbutamol e o brometo de ipratropio. Assinale a alternativa CORRETA que apresente as classes farmacológicas dos fármacos citados anteriormente:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Antagonista de receptor -1 adrenérgico e agonista muscarinico.",
+      "b": "Antagonista de receptor B-2 adrenérgico e antagonista muscarinico",
+      "c": "Agonista de receptor 9-2 adrenérgico e antagonista muscarinico.",
+      "d": "Agonista de receptor 0-2 adrenergico e agonista muscarinico."
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "Os receptores celulares são moléculas proteicas que ficam no interior ou na superficie das células, possuindo a função de interagir com mensageiros químicos, Iniciando assim, respostas celulares. Sobre os receptores celulares, assinale a alternativa correta:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Os receptores que regulam a transcrição génica podem ser denominados de receptores nucleares, apesar de alguns estarem localzados no citoplasma, onde, milgram para o núcleo após a união com o ligante.",
+      "b": "Receptores ligados a canais sinicos, sendo um exemplo o receptor nicotinico da acetilcolina, localizam-se na membrana celular e algumas em ocorre sua resposta de cations Nos receptores ligados a canais lónicos, tambem chamados de receptores ionotropicos, a estimulação por agonista fecha o canal a passagem bloquea Vónico o d) Em receptores acoptados a proteina G, também chamados de receptores metabotrópicos, a transdução de sinal ocorre pela ativação de proteinas G especificas que modularn a atividade enzimatica ou a função de um canal iónico.",
+      "c": " Nos receptores ligados a canais iônicos, também chamados de receptores ionotrópicos, a estimulação por agonista fecha o canal iônico e bloqueia a passagem de cátions.",
+      "d": "Em receptores acoplados a proteína G, também chamados de receptores metabotrópicos, a transdução de sinal ocorre pela ativação de um canal iônico."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Nos anos 1970, a farmacologia entrou em uma nova fase, quando os receptores, que até então tinham sido entidades teóricas, começaram a emergir como entidades bioquímicas, em consequência do desenvolvimento de técnicas de marcação, o que tornou possivel extrair e purificar a proteina do receptor. Foram identificadas quatro superfamilias de receptores: os canais lónicos controlados por ligante, receptores acoplados à proteina G, receptores acoplados a cinases e receptores nucleares. Em relação a estes receptores, assinale a alternativa CORRETA (NUCEPE-2008-PC-PI-Perito Criminal):",
+    "imagem": null,
+    "alternativas": {
+      "a": "Os receptores nucleares são receptores que apresentam sete alfa-hélices transmembrana.  Neles se ligam insulina, citocinas e fatores do crescimento.",
+      "b": "Os receptores acoplados à proteina Gs, quando ativados, promoven aumento ou diminuição da formação de AMPc, ativação da fosfolipase Ce ativação de receptores ionotrópicos",
+      "c": "Os canals sónicos controlados por ligante são ativados por hormonios e, quando ativados, medelam efeitos lentos e hiperpolarizante.",
+      "d": "Os receptores enzimáticos, apresentam resposta tardia, pois necessitam realizar transcrição gênica para formação de sintese de novas proteinas e então desencadear o efeito biológico"
+    },
+    "correta": "d"
+  },
+  {
+    "enunciado": "Assinale a alternativa CORRETA sobre quais receptores e tecidos as fibras pós-ganglionares do sistema nervoso autônomo simpático atuarão:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Receptores nicotinicos nas glândulas salivares",
+      "b": "Receptores muscarinicos na glândula supra-renal.",
+      "c": "Receptores muscarinicos nas glândulas sudoriparas",
+      "d": "Receptores muscarinicos no músculo esquelético."
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "Assinale a alternativa CORRETA sobre a função nos tecidos alvos exercidas pelo sistema nervoso autônomo parassimpático:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Miose pupilar, aumento da frequência cardiaca e contração dos bronquios",
+      "b": "Miose pupilar, diminuição da frequência cardiaca e estimulação das glándulas exócrinas.",
+      "c": "Midriase pupilar, diminuição da frequência cardiaca e estimulação de glandulas exócrinas.",
+      "d": "Midriase pupilar, estimulação da atividade do trato gastrointestinal e contração de bronquios."
+    },
+    "correta": "b"
+  },
+  {
+    "enunciado": "Assinale a alternativa CORRETA que apresenta o efeito da administração de um antagonista da enzima acetilcolinesterase:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Aumento da recaptação da acetilcolina pelo neurónio pré-sinaptico.",
+      "b": "Aumento da acetilcolina na fenda smáptica",
+      "c": "Redução da recaptação da acetilcolina pelo neurónio pré-sinaptico,",
+      "d": "Redução da aceticolina nos tecidos alvos."
+    },
+    "correta": "b"
+  },
+  {
+    "enunciado": "Assinale a alternativa CORRETA sobre a sinalização intracelular desencadeada pelos receptores muscarinicos:",
+    "imagem": null,
+    "alternativas": {
+      "a": "M2 e M4: aumentam a adenilatociclase, gerando resposta excitatória",
+      "b": "M4 e M3: diminuem fosfolipase C gerando resposta excitatória.",
+      "c": "MS e M2 diminuem a adenilatociclase; gerando resposta inibitoria",
+      "d": "M1 e M3: aumentam fosfolipase C gerando resposta excitatória."
+    },
+    "correta": "d"
+  },
+  {
+    "enunciado": "Em relação a sintese e armazenamento da acetilcolina, assinale a alternativa CORRETA:",
+    "imagem": null,
+    "alternativas": {
+      "a": "A colina e transportada para o interior da terminação nervosa por um co-transportador K/colina",
+      "b": "A acetilcolina é sintetizada no exterior da terminação nervosa a partir da molécula de colina.",
+      "c": "A enzima colina-acetiltransferase é responsável por transferir o grupo acetil da acetti coenzima A e sintetizar a colina em acetilcolina.",
+      "d": "A entrada da acetilcolina para a vesicula mediada por um contra-transportador de Na/Ach."
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "Paciente deu entrada na emergência com os seguintes sintomas: salivação excessiva; lacrimejamento; nausea e vomito, cefaléia, distúrbios visuais cólicas abdominais, diarrela; broncoespasmo, bradicardia. A conclusão do médico de plantão foi que este paciente sofreu intoxicação par lancybe, Assinale a alternativa que apresenta a conduta de tratamento para este caso.",
+    "imagem": null,
+    "alternativas": {
+      "a": "Benzodiazepinicos e medidas de suporte.",
+      "b": "Benzodiazepinicos associado a atropina",
+      "c": "Atropina intramuscular e medidas de suporte",
+      "d": "Penicilina e medidas de suporte."
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "Assinale a alternativa CORRETA que apresenta o passo limitante para a formação de acetilcolina:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Transporte de colina para o interior da terminação nervosa.",
+      "b": "Presença de acetil da acetil-coenzima A.",
+      "c": "Presença da enzima colina acetiltransferase.",
+      "d": "Transporte de acetilcolina para o interior da vesicula."
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "No tratamento da asma bronquica, frequentemente são utilizadas substâncias broncodilatadoras para o alivio das crises. Dentre as drogas utilizadas, pode-se citar o brometo de ipratrópio. Assinale a alternativa CORRETA que apresenta a classe farmacológica do fármaco citado anteriormente:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Agonista muscarinico.",
+      "b": "Antagonista muscarinico.",
+      "c": "Agonista nicotinico.",
+      "d": "Antagonista nicotinico."
+    },
+    "correta": "b"
+  },
+  {
+    "enunciado": "Paciente D.F., 62 anos do sexo feminino, vai ao oftalmologista, pois estava apresentando visão distorcida e embaçada, cefaleia e vermelhidão nos olhos, foi constatado após o exame aumento da pressão intraocular. Assinale a alternativa CORRETA que apresenta qual fármaco foi prescrito para esse quadro.",
+    "imagem": null,
+    "alternativas": {
+      "a": "Atenolol.",
+      "b": "Carbacol",
+      "c": "Solifenacina.",
+      "d": "Tiatropio."
+    },
+    "correta": "b"
+  },
+  {
+    "enunciado": "enunciado: ++Pacientes que sofram de constipação intestinal podem piorar dos sintomas se forem medicados com:++\n",
+    "imagem": null,
+    "alternativas": {
+      "a": "Uma medicação que tem efeito agonista nos receptores muscarinicos da acetilcolina.",
+      "b": "Uma medicação que tem efeito agonista nos receptores nicotinicos da acetilcolina.",
+      "c": "Uma medicação que tem efeito antagonista nos receptores muscarinicos da acetilcolina. ",
+      "d": "Uma medicação que tem efeito antagonista nos receptores nicotinicos da acetilcolina. "
+    },
+    "correta": "c"
+  },
+   {
+    "enunciado": "Observe as atividades orgânicas a seguir:\nI. Contração da pupila.\nII. Estimular a salivação.\nIII. Redução dos batimentos cardíacos.\nIV. Desacelerar a respiração.\nQual divisão do Sistema Nervoso é responsável por regulá-las?",
+    "imagem": null,
+    "alternativas": {
+      "a": "Sistema Nervoso Simpático.",
+      "b": "Sistema Nervoso Somático.",
+      "c": "Sistema Nervoso Central.",
+      "d": "Sistema Nervoso Parassimpático."
+    },
+    "correta": "d"
+  },
+  {
+    "enunciado": "Qual das seguintes opções é correta com relação ao Sistema Nervoso Autônomo?",
+    "imagem": null,
+    "alternativas": {
+      "a": "O neurotransmissor no neurônio pré-ganglionar parassimpático é a norepinefrina.",
+      "b": "O neurotransmissor no neurônio pré-ganglionar simpático é acetilcolina.",
+      "c": "Os neurônios simpáticos liberam acetilcolina nos órgãos efetores.",
+      "d": "Os neurônios parassimpáticos liberam norepinefrina nos órgãos efetores"
+    },
+    "correta": "b"
+  },
+  {
+    "enunciado": "Qual das seguintes afirmações é correta em relação aos sistemas simpático e parassimpático?",
+    "imagem": null,
+    "alternativas": {
+      "a": "A acetilcolina ativa receptores muscarínicos.",
+      "b": "A acetilcolina ativa receptores adrenérgicos.",
+      "c": "A norepinefrina ativa receptores muscarínicos.",
+      "d": "A ativação do sistema simpático causa queda da pressão arterial."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Qual das seguintes alterações fisiológicas pode ocorrer quando a pessoa é surpreendida por uma onça?",
+    "imagem": null,
+    "alternativas": {
+      "a": "Aumento do lacrimejamento.",
+      "b": "Constrição da pupila (miose).",
+      "c": "Aumento da frequência cardíaca.",
+      "d": "Aumento da motilidade gástrica."
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "No Trato gastrointestinal, o Sistema Nervoso Autônomo Parassimpático é responsável por:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Diminuição da motilidade.",
+      "b": "Aumento das secreções.",
+      "c": "Bloqueio as vias metabólicas do CIT-P450.",
+      "d": "Bloqueio do sistema nervoso entérico."
+    },
+    "correta": "b"
+  },
+  {
+    "enunciado": "Ao liberar acetilcolina para os órgãos efetores, a fibra nervosa:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Simpática promove aumento do ritmo cardíaco.",
+      "b": "Parassimpática promove diminuição do ritmo cardíaco.",
+      "c": "Parassimpática promove aumento do ritmo cardíaco.",
+      "d": "Simpática e a parassimpática não alteram o ritmo cardíaco"
+    },
+    "correta": "b"
+  },
+  {
+    "enunciado": "A figura abaixo representa os neurônios pré-ganglionares e pós-ganglionares do Sistema Nervoso Simpático e Parassimpático. As flechas pontilhadas e as contínuas representam o neurotransmissor liberado pelos respectivos neurônios: Assinale a alternativa correta:",
+    "imagem": "https://i.imgur.com/bCGT228.png",
+    "alternativas": {
+      "a": "Em A corresponde ao Sistema Nervoso Simpático, Acetilcolina é liberada pelos neurônios pré-ganglionares e pós-ganglionares.",
+      "b": "Em A corresponde ao Sistema Nervoso Parassimpático, a Noradrenalina é liberada pelos neurônios pré-ganglionares e a Acetilcolina é liberada pelos neurônios pós-ganglionares.",
+      "c": "Em B corresponde ao Sistema Nervoso Parassimpático, a Acetilcolina é liberada pelos neurônios pré-ganglionares e a Noradrenalina é liberada pelos neurônios pós-ganglionares.",
+      "d": "Em B corresponde ao Sistema Nervoso Parassimpático, a Acetilcolina é liberada pelos neurônios pré-ganglionares e pós-ganglionares."
+    },
+    "correta": "d"
+  },
+  {
+    "enunciado": "Qual das seguintes sentenças é correta com relação aos receptores de membrana e à transdução de sinal?",
+    "imagem": null,
+    "alternativas": {
+      "a": "Os neurotransmissores do SNA se ligam a receptores de membrana na célula efetora, o que leva a eventos intracelulares.",
+      "b": "Os receptores muscarinicos colinérgicos são exemplos de receptores inotrópicos. A",
+      "c": "Os receptores nicotínicos colinérgicos são exemplos de receptores metabotrópicos.",
+      "d": "Os receptores metabotrópicos promovem a despolarização da membrana."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "O sistema nervoso autônomo (SNA) é subdividido em simpático e parassimpático, os quais têm atividades, em geral, antagônicas, reguladas pela liberação das catecolaminas e da acetilcolina, respectivamente. Um dos importantes efeitos desencadeados pela ativação simpática é:",
+    "imagem": null,
+    "alternativas": {
+      "a": "A contração da pupila.",
+      "b": "A constrição dos brônquios.",
+      "c": "A dilatação dos brônquios.",
+      "d": "O aumento do peristaltismo."
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "Em relação aos receptores colinérgicos:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Todos os receptores muscarínicos (M1, M2, M3, M4 e M5) são acoplados a proteína Gs (estimulatória) ativando adenilil ciclase.",
+      "b": "Os receptores muscarinicos M1, M3 e M5 são acoplados à proteína Gq, ativando a Fosfolipase C enquanto os receptores muscarínicos M2 e M4 são canais iônicos.",
+      "c": "Os receptores nicotínicos Nn e Nm são acoplados à proteína Gi, inativando a adenilil ciclase, promovendo redução da concentração intracelular de ealcio, provocando relaxamento.",
+      "d": "Os receptores nicotínicos Nn e Nm, localizados nos gânglios e junção neuromuscular, respectivamente, são receptores do tipo canal iônico."
+    },
+    "correta": "d"
+  },
+  {
+    "enunciado": "Os fármacos colinomiméticos podem ser classificados segundo a sua ação em colinomiméticos de ação direta e colinomiméticos de ação indireta. Os colinomiméticos de ação indireta, mimetizam as ações da acetilcolina através da inibição da enzima colinesterase, responsável pela degradação da acetilcolina. É um exemplo de um fármaco colinomimético de ação indireta:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Atropina.",
+      "b": "Organofosforado.",
+      "c": "Betanecol",
+      "d": "Muscarina."
+    },
+    "correta": "b"
+  },
+  {
+    "enunciado": "A miastenia gravis é uma doença autominune causada por anticorpos contra o receptor nicotínico das placas motoras. Por esse motivo, causa sua degradação, e desse modo, disponibiliza poucos receptores para a interação com o neurotransmissor. O tratamento referência para esse caso é?",
+    "imagem": null,
+    "alternativas": {
+      "a": "Neostigmina",
+      "b": "Epinefrina",
+      "c": "Nicotina",
+      "d": "Pilocarpina"
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Os fármacos anticolinesterásicos inibem a acetilcolinesterase, uma enzima responsável pela degradação da acetilcolina. Sobre esses fármacos, marque a alternativa incorreta.",
+    "imagem": null,
+    "alternativas": {
+      "a": "Os agentes anticolinesterásicos bloqueiam a ação da acetilcolina nos receptores muscarínicos nos órgãos efetores autônomos.",
+      "b": "Os anticolinesterásicos podem se ligar de maneira reversível e irreversível à acetilcolinesterase.",
+      "c": "O anticolinesterásico, fisostigmina, aumenta a motilidade do intestino e da bexiga.",
+      "d": "A neostigmina é um agente anticolinesterásico utilizado no tratamento sintomático da miastenia gravis."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Atropina mostra-se útil no tratamento da intoxicação provocada por inseticida de organofosforado, utilizado como \"repelente\" conta mosquito da dengue por órgãos de saúde e vigilância sanitária, uma vez que:",
+    "imagem": null,
+    "alternativas": {
+      "a": "A atropina reativa a acetilcolinesterase inibida",
+      "b": "A atropina é agonista e estimula diretamente os receptores muscarínicos",
+      "c": "A atropina é antagonista e bloqueia a ação da acetilcolina em locais centrais e periféricos",
+      "d": "A atropina estimula diretamente os receptores adrenérgicos"
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "As afirmativas seguintes estão corretas, exceto:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Os neurônios pré-ganglionares da divisão simpática originam-se na medula espinhal toracolombar, e os da divisão parassimpática, da medula espinhal cervicossacral.",
+      "b": "Os neurônios pré-ganglionares são todos colinérgicos, pois o neurotransmissor por eles liberado é a acetilcolina.  Por sua vez, os neurônios pós-ganglionares podem ser adrenérgicos ou colinérgicos",
+      "c": "Os anticolinesterásicos são amplamente utilizados em anestesiologia para a reversão do bloqueio neuromuscular produzido pelo uso de bloqueadores neuromusculares despolarizantes.",
+      "d": "No sistema colinérgico, a acetilcolina é rapidamente metabolizada pela enzima catecol-O-metiltransferase (COMT)."
+    },
+    "correta": "d"
+  },
+  {
+    "enunciado": "O medicamento que se liga a receptores muscarínicos, evitando a sua ativação, é o(a)",
+    "imagem": null,
+    "alternativas": {
+      "a": "Atropina.",
+      "b": "Propranolol.",
+      "c": "Fentolamina.",
+      "d": "Norepinefrina."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Julgue os itens a seguir é marque a alternativa incorreta.",
+    "imagem": null,
+    "alternativas": {
+      "a": "O sistema nervoso autônomo é composto de três divisões: simpática, parassimpática e entérica.",
+      "b": "Os principais transmissores do sistema nervoso autônomo são a acetilcolina e a norepinefrina.",
+      "c": "Há três tipos principais de receptores nicotinicos: M1 (Neuronais), M2 (Cardíacos) e M3 (Glandulares).",
+      "d": "Os fármacos utilizados para provocar paralisia durante anestesia são os agentes neuromusculares não despolarizantes e agentes bloqueadores neuromusculares polarizantes."
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "A respeito dos bloqueadores neuromusculares, assinale a alternativa correta.",
+    "imagem": null,
+    "alternativas": {
+      "a": "Atuam sobre os receptores colinérgicos do tipo alfa, induzindo uma liberação de potássio no meio citossólico, o que impede a contração muscular.",
+      "b": "Podem ser despolarizantes ou não-despolarizantes e têm como exemplos suxametônio e atracurônio, respectivamente.",
+      "c": "A ação de um bloqueador neuromuscular não-despolarizante é mediada pelo bloqueio dos receptores muscarínicos.",
+      "d": "A ação de um bloqueador neuromuscular dispensa o uso de anestésico geral."
+    },
+    "correta": "b"
+  },
+  {
+    "enunciado": "A succinilcolina é um agente bloqueador neuromuscular despolarizante utilizado em anestesia de curta duração. As estruturas químicas da succinilcolina e da acetilcolina encontram-se representadas a seguir. Com base nessas informações e nos múltiplos aspectos que elas suscitam, julgue o item subsequente.",
+    "imagem": "https://i.imgur.com/uqhmiKG.png",
+    "alternativas": {
+      "a": "A succinilcolina é um pró-fármaco da acetilcolina.",
+      "b": "A succinilcolina é utilizada para a síntese da acetilcolina.",
+      "c": "A succinilcolina é agonista de receptores muscarínicos.",
+      "d": "A succinilcolina é agonista de receptores nicotínicos."
+    },
+    "correta": "d"
+  },
+  {
+    "enunciado": "Sobre os receptores adrenérgicos, assinale a alternativa correta:",
+    "imagem": null,
+    "alternativas": {
+      "a": "São classificados em receptores alfa-adrenérgicos e beta-adrenérgicos, todos acoplados a Proteína Gs na qual ativa Adenilciclase.",
+      "b": "Receptores beta-adrenérgicos, possuem 3 subtipos, beta-1, beta-2 e beta-3 adrenérgicos, todos acoplados a Proteína Gs, resultando no aumento dos níveis de AMPc.",
+      "c": "Receptores alfa-1 adrenérgicos são inibitórios, resultando na diminuição dos níveis de Cálcio intracelular, provocando vasodilatação.",
+      "d": "A noradrenalina possui a mesma afinidade e seletividade pelos receptores alfa-adrenérgicos e beta-adrenérgicos."
+    },
+    "correta": "b"
+  },
+  {
+    "enunciado": "Considerando as drogas de ação sobre o Sistema Nervoso Autônomo, analise as afirmativas a seguir. I. As drogas parassimpatolíticas de ação direta sobre receptores muscarinicos (atropiha, escopolamina) desencadeiam a diminuição do tônus da musculatura lisa gastrointestinal, bem como a redução de secreções, o que explica os efeitos de constipação e xerostomia. II. Medicamentos denominados vasoativos, classificados como simpatomiméticos de ação direta, podem ser empregados para o aumento da pressão arterial. Esse efeito ocorre pela interação desses agentes com receptores alfa-1 adrenérgicos. III. No caso de choque anafilático, o emprego da adrenalina para reversão do broncoespasmo é justificado pelo efeito agonista em receptores beta-2 adrenérgicos. Como alternativa, a dopamina pode ser empregada, pois apresenta potência semelhante à da adrenalina, no que se refere ao efeito broncodilatador. Assinale a alternativa correta.",
+    "imagem": null,
+    "alternativas": {
+      "a": "Apenas as afirmativas I e III estão corretas.",
+      "b": "Apenas as afirmativas II e III estão corretas.",
+      "c": "Apenas as afirmativas I e II estão corretas.",
+      "d": "As afirmativas I, II e III estão incorretas"
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "Em relação a localização e função dos receptores adrenérgicos, assinale a alternativa correta:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Receptores alfa-1 adrenérgicos, localizados nos vasos sanguíneos, são acoplados a Proteina Gi (inibitória), provocando vasodilatação.",
+      "b": "Receptores alfa-2 adrenérgicos pré-sinápticos, promove o aumento da liberação de catecolaminas para a fenda sináptica por estar acoplado a proteína Gs (estimulatória).",
+      "c": "Receptores beta-1 adrenérgicos estão localizados no coração, no qual são responsáveis pelos efeitos inotrópicos e cronotrópicos positivos das catecolaminas.",
+      "d": "Receptores beta-2 adrenérgicos estão localizados no músculo liso dos pulmões, promovendo bronconstrição."
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "Aceгca dos receptores adrenérgicos, assinale a opção correta:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Os receptores adrenérgicos podem ser classificados como alfa-adrenérgicos e beta-muscarinicos.",
+      "b": "Esses receptores podem ser ativados pela adrenalina, noradrenalina e drogas simpaticomimeticas.",
+      "c": "A dopamina bloqueia irreversivelmente esses receptores.",
+      "d": "Esses receptores apresentam alta afinidade com a nicotina, sendo, por isso, conhecidos também como receptores nicotínicos."
+    },
+    "correta": "b"
+  },
+  {
+    "enunciado": "São catecolaminas endógenas, exceto:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Dopamina.",
+      "b": "Adrenalina.",
+      "c": "Noradrenalina.",
+      "d": "Isoprenalina."
+    },
+    "correta": "d"
+  },
+  {
+    "enunciado": "A estimulação do receptor alfa-2 adrenérgico pré-sináptico-determina:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Vasoconstrição;",
+      "b": "Midríase;",
+      "c": "Relaxamento gastrointestinal;",
+      "d": "Inibição da liberação de noradrenalina."
+    },
+    "correta": "d"
+  },
+  {
+    "enunciado": "A estimulação dos nervos simpáticos causa os seguintes efeitos sobre o coração:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Aumento da frequência cardíaca",
+      "b": "Diminuição da frequência cardíaca",
+      "c": "Diminuição da força de contração",
+      "d": "Vasodilatação"
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Nas pessoas asmáticas, a inalação de solução de adrenalina provoca broncodilatação que, aumentando o fluxo de ar nos pulmões, alivia as crises. Isso ocorre porque os brônquios são inervados por fibras do sistema autônomo:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Parassimpático, que são adrenérgicas",
+      "b": "Parassimpático que são colinérgicas",
+      "c": "Simpático, que são colinérgicas",
+      "d": "Simpático, que são adrenérgicas"
+    },
+    "correta": "d"
+  },
+  {
+    "enunciado": "Dentre os muitos subtipos de receptores adrenérgicos encontrados em todo o organismo, qual teria maior probabilidade de causar a estimulação cardíaca observada após uma injeção EV de adrenalina?",
+    "imagem": null,
+    "alternativas": {
+      "a": "Receptores al-adrenérgicos",
+      "b": "Receptor es ẞ1-adrenérgicos",
+      "c": "Receptores ẞ2-adrenérgicos",
+      "d": "Receptores ẞ3-adrenérgicos"
+    },
+    "correta": "b"
+  },
+  {
+    "enunciado": "Paciente deu entrada no hospital com choque anafilático. Nesse caso para melhora do quadro, qual fármaco/substância deverá ser escolhido:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Isoproterenol",
+      "b": "Salbutamol",
+      "c": "Adrenalina",
+      "d": "Atropina"
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "Os fármacos salbutamol e terbutalina são muito utilizados na prática médica. Assinale a alternativa correta que justifique a principal vantagem farmacodinâmica desses fármacos em relação ao fármaco mais antigo, como o isoproterenol, no tratamento da asma:",
+    "imagem": null,
+    "alternativas": {
+      "a": "São agonistas adrenérgicos ẞ2 seletivos, e, portanto, são broncodilatadores e não atuam em receptores ẞ1 cardíacos que provocam taquicardia e aumento de pressão arterial.",
+      "b": "São antagonistas adrenérgicos a2 seletivos, e, portanto, são broncodilatadores, e não atuam em receptores ẞ1 cardíacos que provocam taquicardia e aumento de pressão arterial.",
+      "c": "São agonistas colinérgicos muscarínicos seletivos e, portanto, são broncodilatadores, e não atuam em receptores nicotínicos que provocam taquicardia.",
+      "d": "São antagonistas adrenérgicos ẞ1 seletivos, e, portanto, são broncodilatadores, e não atuain em receptores a2 que provocam taquicardia."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Sobre o propranolol, marque alternativa correta:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Agonista dos receptores adrenérgicos al seletivos.",
+      "b": "Antagonista dos receptores adrenérgicos al seletivos.",
+      "c": "Antagonista dos receptores adrenérgicos não seletivos - Coracao",
+      "d": "Agonista dos receptores adrenérgicos ẞ1 seletivos."
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "Os fármacos antagonistas adrenérgicos do sistema nervoso simpático têm por característica reduzir a interação norepinefrina, epinefrina e outros agentes simpaticomiméticos com os receptores alfa e beta adrenérgicos. Marque a opção que representa um fármaco desse grupo.",
+    "imagem": null,
+    "alternativas": {
+      "a": "Fenilefrina",
+      "b": "Efedrina",
+      "c": "Atenolol",
+      "d": "Isoproterenol"
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "Considerando que o tratamento de algumas patologias utiliza bloqueadores dos receptores adrenérgicos para diminuir a intensidade dos sintomas, assinale a opção incorreta.",
+    "imagem": null,
+    "alternativas": {
+      "a": "A dobutamina é um exemplo de bloqueador seletivo do receptor beta-1-adrenérgico.",
+      "b": "A noradrenalina inibe a sua própria liberação através da ligação com os receptores alfa-2-adrenérgicos pré-sinápticos.",
+      "c": "Os bloqueadores do receptor betal-adrenérgico impedem a ativação da fosfolipase C e, por essa razão, ocorre a redução de IP3 e diacilglicerol como segundos mensageiros.",
+      "d": "A fenoxibenzamina e o atenolol são exemplos de bloqueadores dos receptores alfa e beta adrenérgicos, respectivamente."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Os principais efeitos clínicos de diversos simpaticomiméticos resultam da ativação dos receptores a-adrenérgicos no músculo liso vascular. Em consequência, a resistência vascular periférica aumenta, enquanto a pressão arterial é mantida ou sofre elevação. Embora a utilidade clínica desses fármacos seja limitada, podem ser úteis no tratamento de alguns pacientes com hipotensão. Com base no exposto, marque alternativa que contém um agonista adrenérgico al -seletivo.",
+    "imagem": null,
+    "alternativas": {
+      "a": "Fenilefrina.",
+      "b": "Clonidina.",
+      "c": "Isoproterenol.",
+      "d": "loimbina."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Considerando a classificação dos agonistas dos receptores adrenérgicos, assinale a alternativa correta.",
+    "imagem": null,
+    "alternativas": {
+      "a": "A al-fenilefrina, a2-clonidina, a ẞ1-dobutamina e a ẞ2-terbutalina, constituem clássicos representantes agonistas adrenérgicos de ação indireta",
+      "b": "A al-fenilefrina, a2-clonidina, a ẞ1-dobutamina e a ẞ2-terbutalina, constituem clássicos representantes agonistas adrenérgicos não seletivos de ação direta.",
+      "c": "A anfetamina, a tiramina, a cocaína constituem drogas agonistas de ação direta.",
+      "d": "A efedrina é um agonista adrenérgico de ação mista."
+    },
+    "correta": "d"
+  },
+  {
+    "enunciado": "Qual dos antiadrenérgicos abaixo bloqueia os receptores alfa (a) situados em artérias e veias promovendo, assim, a diminuição na pressão arterial sistêmica?",
+    "imagem": null,
+    "alternativas": {
+      "a": "Reserpina",
+      "b": "Prazosin",
+      "c": "Metoprolol",
+      "d": "Atenolol"
+    },
+    "correta": "b"
+  },
+  {
+    "enunciado": "Um homem idoso foi levado ao pronto-socorro após a ingestão de grande quantidade de comprimidos de carvedilol, um fármaco que bloqueia receptores al, ẞ1 e ẞ2 adrenérgicos. Qual dos seguintes sintomas é esperado neste paciente?",
+    "imagem": null,
+    "alternativas": {
+      "a": "Aumento da frequência cardíaca (taquicardia).",
+      "b": "Diminuição da frequência cardíaca (bradicardia).",
+      "c": "Dilatação da pupila (midríase).",
+      "d": "Aumento da pressão arterial."
+    },
+    "correta": "b"
+  },
+  {
+    "enunciado": "Por que os pacientes fazendo uso dos inibidores da monoaminoxidase (IMAO) devem restringir alimentos, ricos em tiramina, como vinho e derivados do leite?",
+    "imagem": null,
+    "alternativas": {
+      "a": "Porque esta interação pode promover uma crise hipertensiva.",
+      "b": "Porque esta interação evita uma hipotensão arterial.",
+      "c": "Esta interação não é restritiva e sim benéfica ao paciente.",
+      "d": "Essa interação só deve ser evitada em pacientes jovens."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "A enzima monoaminaoxidase está presente no interior do axônio e tem por finalidade a metabolização de catecolaminas. Com isso podemos afirmar que:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Os inibidores da MAO diminuem a concentração de catecolaminas na fenda sináptica.",
+      "b": "Os inibidores da MAO aumentam a concentração de catecolaminas na fenda sináptica.",
+      "c": "A monoaminoxidase degrada somente as catecolaminas endógenas.",
+      "d": "A monoaminoxidase converte a dopamina em adrenalina no terminal nervoso."
+    },
+    "correta": "b"
+  },
+  {
+    "enunciado": "Acerca dos eventos farmacológicos que ocorrem após a interação de neurotransmissores com receptores e das drogas que atuam nesse processo, assinale a opção correta.",
+    "imagem": null,
+    "alternativas": {
+      "a": "Além de outros processos de inativação, os neurotransmissores catecolamínicos são metabolizados pela enzima monoamina oxidase (MAO).",
+      "b": "No sistema colinérgico, a acetilcolina é rapidamente metabolizada pela enzima catecol-O-metiltransferase (COMT).",
+      "c": "As anfetaminas bloqueiam a recaptação de acetilcolina, aumentando assim a atividade colinérgica.",
+      "d": "A reserpina estimula a recaptação e estocagem da noradrenalina."
+    },
+    "correta": "a"
+  },
+];
+
+        // --- FIM DAS MODIFICAÇÕES PRINCIPAIS ---
+
+        // Variáveis globais (algumas mantidas, outras adaptadas)
+        let allQuestions = []; 
+        let currentTestQuestions = [];
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let testStatistics = { 
+            correct: [],
+            incorrect: [],
+            attemptsHistory: [],
+            performanceByArea: {},
+            questionMistakes: {} 
+        };
+        let answeredQuestions = 0;
+        let answeredInBlock = 0;
+        let correctInBlock = 0;
+        let showFeedbackOnNext = false;
+        let currentAttempt = 0; 
+        let currentQuizIsReviewMode = false; 
+        let hasFinishedCurrentTestProcessing = false;
+        let charts = {
+            performance: null, progress: null, areas: null, mistakes: null,
+            questionSizeChart: null, timePerQuestion: null 
+        };
+
+        // Constantes de elementos do DOM
+        const quizPage = document.getElementById('quizPage');
+        const resultsPage = document.getElementById('resultsPage');
+        const currentQuestionDiv = document.getElementById('currentQuestion');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const finishBtn = document.getElementById('finishBtn');
+        // const jsonInput = document.getElementById('jsonInput'); // REMOVIDO
+        const finalScoreText = document.getElementById('finalScoreText');
+        const finalPercentageText = document.getElementById('finalPercentageText');
+        const questionsAnalysis = document.getElementById('questionsAnalysis');
+        const progressBar = document.getElementById('progressBar');
+        const instantFeedback = document.getElementById('instantFeedback');
+        
+        const feedbackPopup = document.getElementById('feedbackPopup');
+        const closeFeedback = document.getElementById('closeFeedback');
+        const continueButton = document.getElementById('continueButton');
+        const feedbackTotal = document.getElementById('feedbackTotal');
+        const feedbackCorrect = document.getElementById('feedbackCorrect');
+        const feedbackIncorrect = document.getElementById('feedbackIncorrect');
+        const feedbackPercentageValue = document.getElementById('feedbackPercentageValue');
+        const feedbackMistakesList = document.getElementById('feedbackMistakesList');
+        
+        const quizStartOptionsPopup = document.getElementById('quizStartOptionsPopup');
+        const quizOptionsPopupTitle = document.getElementById('quizOptionsPopupTitle');
+        const quizOptionsPopupSubtitle = document.getElementById('quizOptionsPopupSubtitle');
+        const quizOptionsPopupButtons = document.getElementById('quizOptionsPopupButtons');
+        
+        const questionDetailPopup = document.getElementById('questionDetailPopup');
+        const questionDetailContent = document.getElementById('questionDetailContent');
+
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const darkModeText = document.getElementById('darkModeText');
+        const darkModeToggleResults = document.getElementById('darkModeToggleResults');
+        const darkModeTextResults = document.getElementById('darkModeTextResults');
+        
+        const toggleAnalysisBtn = document.getElementById('toggleAnalysisBtn');
+        const analysisBox = document.getElementById('analysisBox');
+        const correctSound = document.getElementById('correctSound');
+        const wrongSound = document.getElementById('wrongSound');
+        // const jsonFileListElement = document.getElementById('jsonFileList'); // REMOVIDO
+        const quizTitleElement = document.getElementById('quizTitle'); 
+        const resultsTitleElement = document.getElementById('resultsTitle');
+        const resetStatsBtn = document.getElementById('resetStatsBtn');
+
+
+       const iframes = [
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/lista-mais-g-y-do-planeta-terra-2-0-1308/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/eu-quero-comer-voce-99397/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/rat-dance-music-93451/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/pou-estourado-48183/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/sua-mae-sabe-que-voce-gosta-de-rapazes-80078/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/toma-milk-shake-de-morango-59364/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/rojao-super-estourado-44057/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/me-da-minha-foia-19424/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/vai-tomar-no-c-pir4nh444-34654/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/lula-e-neymar-47-40647/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/e-agora-vai-entra-o-grosso-75362/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/caramba-que-p1nto-enorme-42382/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/o-homem-uma-maquina-uma-besta-enjaulada-66045/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/manda-foto-pivete-4508/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/som-do-zap-zap-estourado-15594/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/lula-empurra-mole-59742/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/foi-quando-gyro-finalmente-entendeu-41342/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/uicideboy-intro-gmi2-36329/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/abc-da-amazonia-61531/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/corinthians-radio-globo/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/cruzeiro-radio-globo/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/eae-mane-cade-o-pix-mwahahaha-8598/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/posso-te-ligar-agora-ou-tua-mulher-54107/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/para-de-mandar-audio-to-na-ucrania-47141/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/ponte-preta-radio-globo-91750/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/coritiba-radio-globo/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/dolly-estourado-50496/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/imbroxavel-44092/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/lula-ze-gotinha-26753/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/hino-da-urss-53471/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/lobo-pidao-50489/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/voce-vem-almocar-23752/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/vinheta-ifood/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/spongebob-fail-11236/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/botao-do-whatsapp-97196/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/1-2-3-4-flamengo-18569/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/ai-chavinho-25347/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/tralalero-funk-20181/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/indian-song-7sek-58379/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/hello-moto-estourado-73372/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/plantao-globo/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/aw-shit-here-go-again-cj-from-gta-sa-97151/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/cala-a-boca-e-escuta-o-som-da-minha-kombi-ai-2767/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/qui-fase-que-ta-o-curintia-43357/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/musica-triste-meme-41946/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/pare/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/me-ferrei-amigos-estevao-31478/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/ele-ta-pedindo-pra-ser-empurrado-4066/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/papu-papu-papu-58837/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/biometria-13888/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/brasil-radio-globo/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/agostinho-carrara-autonomo-28476/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/freddie/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/bem-te-vi-passaro-58874/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/grito-do-tom-35478/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/what-bottom-text-meme-sanctuary-guardian-s-24591/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/acorda-monark-17462/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/me-mata-de-uma-vez-trio-parada-dura-572/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/me-mata-de-uma-vez-31687/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/aumenta-o-som-marcelo-dig-dig-dig-74686/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/vinheta-jornal-nacional/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/cr7-bom-dia-34785/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/bad-to-the-bone-meme-22189/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/ai-programa-hora-do-faro-melhor-qualidade-5308/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/donald-trump-build-a-wall/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/quien-estaba-hablando-contigo-73597/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/bom-dia-sao-10h-silvio-santos/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/comercial-de-xampu-de-mulher/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/avocados-fron-mexico-5538/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/comercial-globo-1-621/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/comercial-globo-2-83971/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/e-o-pintinho-piu-26037/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/bilu-o-et-brasileiro/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/som-motor-f1-51289/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/buzina-de-caminhao-byrm-17163/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/caminhao-de-gas/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/re-caminhao-67082/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/o-moco-o-caminhao-tombou-35530/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/toque-do-motorola-28486/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/encara-messi-23845/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/cr7-vou-ao-u-ao-messi-36080/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/linkin-park-in-the-end-versao-forro-brazil-79061/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/vx-without-me-forro-estourado-27992/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/minha-pomba-forro-21153/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/champions-league-forro-42023/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/tu-conhece-a-paola-63959/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/lula-feijao-puro-34490/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/chora-viola/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/sinonimos-chitaozinho-xororo-brasil-27832/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/eu-to-maluco-to-doente-to-doidao-14644/embed/" frameborder="0" scrolling="no"></iframe>'
+];
+
+        // FUNÇÕES REMOVIDAS: sanitizeFileName, getFileList, saveFileList, renderFileList, deleteFile (relacionadas a múltiplos arquivos)
+
+        /**
+         * Salva apenas as estatísticas do simulado embutido no localStorage.
+         * @param {object} statsObject - O objeto de estatísticas a ser salvo.
+         */
+        function saveStats(statsObject) {
+            localStorage.setItem(LOCAL_STORAGE_STATS_PREFIX + EMBEDDED_QUIZ_ID, JSON.stringify(statsObject));
+        }
+
+        /**
+         * Carrega o simulado embutido (questões e estatísticas) e prepara para iniciar.
+         */
+        function loadEmbeddedQuizAndShowOptions() {
+            const displayName = "Simulado Principal"; // Nome fixo para o simulado embutido
+            const statsString = localStorage.getItem(LOCAL_STORAGE_STATS_PREFIX + EMBEDDED_QUIZ_ID);
+
+            // Processa as questões embutidas para garantir IDs únicos
+            allQuestions = embeddedQuestionsSource.map((q, index) => ({
+                ...q,
+                id: q.id || `${EMBEDDED_QUIZ_ID}-q-${index}` // Garante um ID para cada questão
+            }));
+
+            if (allQuestions.length === 0) {
+                currentQuestionDiv.innerHTML = "<p>Erro: Nenhuma questão embutida configurada.</p>";
+                alert('Erro: Nenhuma questão embutida encontrada ou formato inválido.');
+                resetStatsBtn.disabled = true;
+                return;
+            }
+
+            quizTitleElement.textContent = `Simulado: ${displayName}`;
+            resultsTitleElement.textContent = `Resultados: ${displayName}`;
+
+            if (statsString) {
+                testStatistics = JSON.parse(statsString);
+                testStatistics.questionMistakes = testStatistics.questionMistakes || {};
+                allQuestions.forEach(q => { // Garante que todas as questões atuais tenham uma entrada em questionMistakes
+                    if (testStatistics.questionMistakes[q.id] === undefined) {
+                        testStatistics.questionMistakes[q.id] = 0;
+                    }
+                });
+                currentAttempt = testStatistics.attemptCount || 0;
+            } else { // Se não há estatísticas salvas, inicializa
+                testStatistics = { 
+                    correct: [], 
+                    incorrect: [], 
+                    attemptsHistory: [], 
+                    performanceByArea: {}, 
+                    questionMistakes: {}, 
+                    attemptCount: 0 
+                };
+                allQuestions.forEach(q => { testStatistics.questionMistakes[q.id] = 0; });
+                currentAttempt = 0;
+            }
+            
+            resultsPage.style.display = 'none'; 
+            quizPage.style.display = 'none'; 
+            showQuizStartOptionsPopup(displayName);
+            resetStatsBtn.disabled = !statsString; // Habilita se houver estatísticas salvas
+        }
+        
+        /**
+         * Exibe o popup com opções para iniciar o simulado.
+         * @param {string} displayName - O nome de exibição do simulado.
+         */
+        function showQuizStartOptionsPopup(displayName) {
+            quizOptionsPopupSubtitle.textContent = `Simulado: ${displayName}`;
+            quizOptionsPopupButtons.innerHTML = ''; 
+
+            const normalTestButton = document.createElement('button');
+            normalTestButton.textContent = 'Prova Normal (40Q)'; // Ou o número de questões embutidas se for menor
+            normalTestButton.className = 'popup-button'; 
+            normalTestButton.onclick = () => {
+                initializeTest(false, Math.min(40, allQuestions.length)); // Ajusta o número de questões se necessário
+                closeQuizOptionsPopup();
+            };
+            quizOptionsPopupButtons.appendChild(normalTestButton);
+
+            const distinctMistakesCount = Object.values(testStatistics.questionMistakes || {}).filter(count => count > 0).length;
+            
+            // Mostra opção de revisar erros apenas se houver erros registrados
+            if (distinctMistakesCount > 0) { 
+                const reviewMistakesButton = document.createElement('button');
+                const reviewQuizLength = Math.min(10, distinctMistakesCount); 
+                reviewMistakesButton.textContent = `Revisar Erros (${reviewQuizLength}Q)`;
+                reviewMistakesButton.className = 'popup-button';
+                reviewMistakesButton.onclick = () => {
+                    initializeTest(true, 10); 
+                    closeQuizOptionsPopup();
+                };
+                quizOptionsPopupButtons.appendChild(reviewMistakesButton);
+            }
+            
+            quizStartOptionsPopup.classList.add('active');
+        }
+
+        function closeQuizOptionsPopup() {
+            quizStartOptionsPopup.classList.remove('active');
+        }
+        
+        resetStatsBtn.addEventListener('click', () => {
+            const currentFileNameForAlert = "Simulado Principal";
+
+            if (confirm(`Tem a certeza que quer resetar todas as estatísticas (histórico de tentativas, erros, etc.) do "${currentFileNameForAlert}"? As questões em si NÃO serão apagadas.`)) {
+                testStatistics = { 
+                    correct: [],
+                    incorrect: [],
+                    attemptsHistory: [],
+                    performanceByArea: {},
+                    questionMistakes: {}, 
+                    attemptCount: 0 
+                };
+                // Re-inicializa a contagem de erros para todas as questões embutidas
+                allQuestions.forEach(q => { 
+                    testStatistics.questionMistakes[q.id] = 0;
+                });
+
+                saveStats(testStatistics); // Salva as estatísticas resetadas
+                
+                alert("Estatísticas resetadas com sucesso!");
+                
+                if(resultsPage.style.display === 'block'){
+                    resultsPage.style.display = 'none';
+                }
+                if(quizPage.style.display === 'block'){
+                     quizPage.style.display = 'none';
+                }
+                currentQuestionDiv.innerHTML = ""; // Limpa a área de questão
+                
+                // Recarrega as opções de início, já que as estatísticas foram alteradas
+                loadEmbeddedQuizAndShowOptions();
+            }
+        });
+
+
+        function playSound(soundElement) {
+            if (soundElement) {
+                soundElement.currentTime = 0;
+                soundElement.play().catch(e => console.error("Erro ao tocar som:", e));
+            }
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkModeGlobalSetting', isDark ? 'enabled' : 'disabled'); 
+            const text = isDark ? 'Modo Claro' : 'Modo Escuro';
+            darkModeText.textContent = text;
+            darkModeTextResults.textContent = text;
+            if (resultsPage.style.display === 'block' && currentFileId) updateCharts(); 
+        }
+
+        if (localStorage.getItem('darkModeGlobalSetting') === 'enabled') {
+            document.body.classList.add('dark-mode');
+            darkModeText.textContent = 'Modo Claro';
+            darkModeTextResults.textContent = 'Modo Claro';
+        } else {
+             darkModeText.textContent = 'Modo Escuro';
+            darkModeTextResults.textContent = 'Modo Escuro';
+        }
+
+        darkModeToggle.addEventListener('click', toggleDarkMode);
+        darkModeToggleResults.addEventListener('click', toggleDarkMode);
+        closeFeedback.addEventListener('click', () => feedbackPopup.classList.remove('active'));
+        
+        toggleAnalysisBtn.addEventListener('click', () => {
+            const isHidden = analysisBox.style.display === 'none' || analysisBox.style.display === '';
+            analysisBox.style.display = isHidden ? 'block' : 'none';
+            if (isHidden) {
+                toggleAnalysisBtn.innerHTML = '<span class="icon">&#x25B2;</span>Recolher Análise';
+                toggleAnalysisBtn.classList.add('expanded');
+            } else {
+                toggleAnalysisBtn.innerHTML = '<span class="icon">&#x25BC;</span>Expandir Análise';
+                toggleAnalysisBtn.classList.remove('expanded');
+            }
+        });
+        
+        continueButton.addEventListener('click', () => {
+            feedbackPopup.classList.remove('active');
+            if (currentQuestionIndex < currentTestQuestions.length - 1) { 
+                currentQuestionIndex++;
+                displayCurrentQuestion(); 
+            } else { // Se era o feedback do último bloco da última questão
+                actuallyFinishTest();
+            }
+        });
+
+        // REMOVIDO: jsonInput.addEventListener('change', ...)
+
+        function initializeTest(isMistakesQuiz = false, numQuestions = 40) {
+            instantFeedback.style.display = 'none'; 
+            instantFeedback.textContent = '';
+            currentQuizIsReviewMode = isMistakesQuiz; 
+            hasFinishedCurrentTestProcessing = false; 
+
+            // A verificação de currentFileId não é mais crítica aqui, pois é fixo.
+            // allQuestions é preenchido por loadEmbeddedQuizAndShowOptions
+            if (allQuestions.length === 0) {
+                currentQuestionDiv.innerHTML = "<p>Nenhuma questão carregada. Verifique a configuração das questões embutidas.</p>";
+                quizPage.style.display = 'block'; 
+                return;
+            }
+            userAnswers = {}; 
+            currentQuestionIndex = 0;
+            answeredQuestions = 0;
+            answeredInBlock = 0;
+            correctInBlock = 0;
+            showFeedbackOnNext = false;
+            testStatistics.correct = []; 
+            testStatistics.incorrect = []; 
+            testStatistics.performanceByArea = {}; 
+            
+            // Incrementa o contador de tentativas apenas para provas normais
+            if (!isMistakesQuiz) {
+                testStatistics.attemptCount = (testStatistics.attemptCount || 0) + 1;
+                currentAttempt = testStatistics.attemptCount; 
+                saveStats(testStatistics); // Salva o contador de tentativas atualizado
+            }
+
+
+            if (isMistakesQuiz) {
+                currentTestQuestions = getMostMistakenQuestions(allQuestions, numQuestions); 
+                if (currentTestQuestions.length === 0 ) {
+                    alert("Não há questões erradas para revisar ou elas já foram vistas. Iniciando prova normal.");
+                    currentTestQuestions = getRandomQuestions(allQuestions, Math.min(40, allQuestions.length)); 
+                    numQuestions = currentTestQuestions.length; // Ajusta numQuestions para o tamanho real
+                    currentQuizIsReviewMode = false; 
+                } else if (currentTestQuestions.length < numQuestions) {
+                    numQuestions = currentTestQuestions.length;
+                }
+            } else { 
+                // Lógica para alternar para revisão de erros a cada X tentativas (ex: 6)
+                if (testStatistics.attemptCount > 0 && testStatistics.attemptCount % 6 === 0) { 
+                    const mistakenForReview = getMostMistakenQuestions(allQuestions, numQuestions);
+                    if (mistakenForReview.length > 0) {
+                        currentTestQuestions = mistakenForReview;
+                        currentQuizIsReviewMode = true; 
+                         if (currentTestQuestions.length < numQuestions) numQuestions = currentTestQuestions.length;
+                        alert("Esta é uma rodada de revisão das questões mais erradas!");
+                    } else { // Se não há erros para revisar, faz uma prova normal
+                        currentTestQuestions = getRandomQuestions(allQuestions, Math.min(numQuestions, allQuestions.length));
+                        currentQuizIsReviewMode = false;
+                         if (currentTestQuestions.length < numQuestions) numQuestions = currentTestQuestions.length;
+                    }
+                } else { // Prova normal padrão
+                    currentTestQuestions = getRandomQuestions(allQuestions, Math.min(numQuestions, allQuestions.length));
+                    currentQuizIsReviewMode = false;
+                     if (currentTestQuestions.length < numQuestions) numQuestions = currentTestQuestions.length;
+                }
+            }
+            
+            // Garante que não tentaremos exibir mais questões do que temos
+            if (currentTestQuestions.length > numQuestions) {
+                 currentTestQuestions = currentTestQuestions.slice(0, numQuestions);
+            } else {
+                numQuestions = currentTestQuestions.length; // Ajusta numQuestions para o número real de questões selecionadas
+            }
+
+            if (currentTestQuestions.length === 0 && allQuestions.length > 0) { // Fallback se a seleção de erros não retornar nada
+                currentTestQuestions = getRandomQuestions(allQuestions, Math.min(numQuestions, allQuestions.length));
+                currentQuizIsReviewMode = false; 
+            }
+
+
+            quizPage.style.display = 'block'; 
+            resultsPage.style.display = 'none';
+            analysisBox.style.display = 'none'; 
+            toggleAnalysisBtn.innerHTML = '<span class="icon">&#x25BC;</span>Expandir Análise';
+            toggleAnalysisBtn.classList.remove('expanded');
+
+            if (currentTestQuestions.length > 0) {
+                displayCurrentQuestion();
+            } else {
+                currentQuestionDiv.innerHTML = "<p>Nenhuma questão disponível para este modo de prova.</p>";
+                nextBtn.disabled = true;
+                finishBtn.style.display = 'none';
+            }
+            updateProgressBar();
+            updateNavigationButtons();
+        }
+
+        function getRandomQuestions(questions, count) {
+            if (questions.length === 0) return [];
+            const availableQuestions = questions.length;
+            const numToSelect = Math.min(count, availableQuestions);
+            const shuffled = [...questions].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, numToSelect);
+        }
+
+        function getMostMistakenQuestions(questions, count) {
+            if (questions.length === 0 || !testStatistics.questionMistakes) return [];
+            const questionsWithMistakes = questions
+                .map(q => ({ ...q, mistakes: testStatistics.questionMistakes[q.id] || 0 }))
+                .filter(q => q.mistakes > 0);
+
+            questionsWithMistakes.sort((a, b) => b.mistakes - a.mistakes); // Mais erradas primeiro
+            
+            const numToSelect = Math.min(count, questionsWithMistakes.length);
+            const selected = questionsWithMistakes.slice(0, numToSelect);
+            return shuffleArray(selected); // Embaralha as selecionadas para não virem sempre na mesma ordem de erro
+        }
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function formatEnunciado(text) {
+            if (!text) return '';
+            const tableRegex = /(\+[-]+\+[\s\S]*\+[-]+\+)/g; 
+            return text.replace(tableRegex, '<pre class="ascii-table">$&</pre>');
+        }
+
+        function displayCurrentQuestion() {
+            instantFeedback.style.display = 'none'; 
+
+            if (currentTestQuestions.length === 0 || currentQuestionIndex >= currentTestQuestions.length) {
+                if (answeredQuestions > 0) actuallyFinishTest(); 
+                else currentQuestionDiv.innerHTML = "<p>Fim das questões ou nenhuma questão carregada.</p>";
+                return;
+            }
+            const question = currentTestQuestions[currentQuestionIndex];
+            let imageHtml = '';
+            if (question.imagem && question.imagem !== 'null') {
+                imageHtml = `<img src="${question.imagem}" alt="Imagem da questão" class="question-image">`;
+            }
+            const formattedEnunciado = formatEnunciado(question.enunciado);
+
+            let starsHtml = '';
+            if (currentQuizIsReviewMode && testStatistics.questionMistakes && testStatistics.questionMistakes[question.id]) {
+                const errorCount = testStatistics.questionMistakes[question.id];
+                if (errorCount > 0) { 
+                    let starCount = 0;
+                    // Lógica de estrelas: 1 estrela para 1-2 erros, 2 estrelas para 3-4 erros, etc.
+                    // Ajuste esta lógica conforme necessário.
+                    if (errorCount >= 1 && errorCount <=2) starCount = 1;
+                    else if (errorCount >= 3 && errorCount <=4) starCount = 2;
+                    else if (errorCount >= 5) starCount = 3; // Máximo de 3 estrelas, por exemplo
+
+                    starCount = Math.min(3, starCount); // Limita o número de estrelas
+
+                    if (starCount > 0) {
+                        starsHtml = `<span class="mistake-stars-container">${'⭐'.repeat(starCount)} <span class="mistake-stars-label">(Nível de Erro)</span></span>`;
+                    }
+                }
+            }
+
+
+            currentQuestionDiv.innerHTML = `
+                <div class="question-container" id="questionContainer">
+                    <div class="question-number">Questão ${currentQuestionIndex + 1} de ${currentTestQuestions.length} ${starsHtml}</div>
+                    <div class="question-text">${formattedEnunciado}</div>
+                    ${imageHtml}
+                    <div class="options" id="optionsContainer"></div>
+                    <div class="correct-answer" id="correctAnswer" style="display:none;">Resposta correta: ${question.correta.toUpperCase()}</div>
+                    ${question.explicacao ? `<div class="explanation" id="explanation" style="display:none;">${formatEnunciado(question.explicacao)}</div>` : ''}
+                </div>`;
+            
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = ''; 
+            
+            Object.entries(question.alternativas).forEach(([letter, text]) => {
+                const optionId = `q${currentQuestionIndex}-opt-${letter}-${Date.now()}`;
+                const label = document.createElement('label');
+                label.className = 'option';
+                label.htmlFor = optionId;
+
+                const radioInput = document.createElement('input');
+                radioInput.type = 'radio';
+                radioInput.id = optionId;
+                radioInput.name = `question-${question.id}`; 
+                radioInput.value = letter;
+
+                if (userAnswers[question.id] !== undefined) { // Se a questão já foi respondida nesta tentativa
+                    radioInput.checked = (userAnswers[question.id] === letter);
+                    radioInput.disabled = true; 
+                     if (userAnswers[question.id] === letter) { 
+                        label.classList.add(userAnswers[question.id] === question.correta ? 'correct' : 'incorrect', 'selected');
+                    } else if (letter === question.correta) { 
+                        label.classList.add('correct');
+                    }
+                }
+                
+                const letterSpan = document.createElement('span');
+                letterSpan.className = 'option-letter-styled';
+                letterSpan.textContent = `${letter.toUpperCase()})`;
+
+                const textSpan = document.createElement('span');
+                textSpan.className = 'option-actual-text';
+                textSpan.textContent = text;
+
+                label.appendChild(radioInput);
+                label.appendChild(letterSpan);
+                label.appendChild(textSpan);
+                optionsContainer.appendChild(label);
+
+                if (!radioInput.disabled) { 
+                    label.addEventListener('click', function() {
+                        if (userAnswers[question.id] !== undefined) return; 
+
+                        userAnswers[question.id] = radioInput.value;
+                        radioInput.checked = true;
+
+                        const isCorrect = radioInput.value === question.correta;
+                        playSound(isCorrect ? correctSound : wrongSound);
+
+                        optionsContainer.querySelectorAll('label.option').forEach(optLabel => {
+                            const optRadio = optLabel.querySelector('input[type="radio"]');
+                            optRadio.disabled = true;
+                            optLabel.classList.remove('selected', 'correct', 'incorrect');
+                            if (optRadio.value === question.correta) {
+                                optLabel.classList.add('correct');
+                            }
+                            if (optRadio.value === radioInput.value) { 
+                                optLabel.classList.add('selected');
+                                if (!isCorrect) {
+                                    optLabel.classList.add('incorrect');
+                                }
+                            }
+                        });
+                        
+                        const qContainer = document.getElementById('questionContainer');
+                        qContainer.classList.remove('correct', 'incorrect');
+                        qContainer.classList.add(isCorrect ? 'correct' : 'incorrect');
+                        
+                        document.getElementById('correctAnswer').style.display = 'block';
+                        const explanationDiv = document.getElementById('explanation');
+                        if (explanationDiv) explanationDiv.style.display = 'block';
+
+                        answeredQuestions++;
+                        answeredInBlock++;
+                        if (isCorrect) correctInBlock++;
+                        
+                        updateProgressBar();
+                        // MODIFICAÇÃO: Mudar bloco de 5 para 10
+                        if (answeredInBlock > 0 && answeredInBlock % 10 === 0) { 
+                            showFeedbackOnNext = true;
+                        }
+                        updateNavigationButtons();
+                    });
+                }
+            });
+
+            const qContainer = document.getElementById('questionContainer');
+            if (userAnswers[question.id] !== undefined) { // Se já respondida, mostrar estado correto/incorreto
+                 document.getElementById('correctAnswer').style.display = 'block';
+                 const explanationDiv = document.getElementById('explanation');
+                 if (explanationDiv) explanationDiv.style.display = 'block';
+                 qContainer.classList.toggle('correct', userAnswers[question.id] === question.correta);
+                 qContainer.classList.toggle('incorrect', userAnswers[question.id] !== question.correta);
+            }
+            
+            updateNavigationButtons();
+            currentQuestionDiv.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
+        }
+
+        function showCongratsPopupWithRandomIframe() {
+            const existingPopup = document.querySelector('.congrats-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // MODIFICAÇÃO: Usar a variável global 'iframes'
+            const randomIframeHtml = iframes[Math.floor(Math.random() * iframes.length)];
+            const popup = document.createElement('div');
+            popup.className = 'congrats-popup';
+            popup.innerHTML = `
+                <div class="congrats-content">
+                    <p class="congrats-message">Parabéns! Você tirou 7+! (áudios 100% aleatório de um site de áudio, CUIDADO!!) </p>
+                    <div class="random-iframe">${randomIframeHtml}</div>
+                    <button class="close-popup-button" onclick="this.closest('.congrats-popup').remove()">Fechar</button>
+                </div>`;
+            document.body.appendChild(popup);
+        }
+        
+        function showBlockFeedback() {
+            const totalInBlock = answeredInBlock;
+            if (totalInBlock === 0 && !showFeedbackOnNext) { 
+                 if (currentQuestionIndex < currentTestQuestions.length - 1) {
+                     currentQuestionIndex++; 
+                     displayCurrentQuestion(); 
+                 } else { 
+                     actuallyFinishTest(); 
+                 }
+                return;
+            }
+            showFeedbackOnNext = false; 
+
+            const incorrectInBlock = totalInBlock - correctInBlock;
+            const percentage = totalInBlock > 0 ? Math.round((correctInBlock / totalInBlock) * 100) : 0;
+            
+            feedbackTotal.textContent = totalInBlock;
+            feedbackCorrect.textContent = correctInBlock;
+            feedbackIncorrect.textContent = incorrectInBlock;
+            feedbackPercentageValue.textContent = percentage;
+            
+            feedbackMistakesList.innerHTML = '<h4>Resumo dos erros neste bloco:</h4>';
+            let mistakesContent = '';
+            
+            const blockStartIndex = Math.max(0, (currentQuestionIndex +1) - totalInBlock);
+
+
+            for(let i = 0; i < totalInBlock; i++) {
+                const qIdxInTest = blockStartIndex + i;
+                 if (qIdxInTest >= currentTestQuestions.length) continue;
+
+                const question = currentTestQuestions[qIdxInTest];
+                const userAnswer = userAnswers[question.id];
+
+                if(userAnswer !== undefined && userAnswer !== question.correta) {
+                    mistakesContent += `<div class="feedback-mistake-item">
+                        <div class="feedback-mistake-question">Q${qIdxInTest + 1}: ${question.enunciado.substring(0,50)}...</div>
+                        <div class="feedback-mistake-option feedback-mistake-selected">Sua Resposta: ${userAnswer.toUpperCase()}) ${question.alternativas[userAnswer]}</div>
+                        <div class="feedback-mistake-option feedback-mistake-correct">Correta: ${question.correta.toUpperCase()}) ${question.alternativas[question.correta]}</div>
+                    </div>`;
+                }
+            }
+            if(mistakesContent === '') mistakesContent = "<p>Nenhum erro neste bloco. Ótimo!</p>";
+            feedbackMistakesList.innerHTML += mistakesContent;
+            
+            feedbackPopup.classList.add('active');
+
+            if (percentage >= 70) {
+                setTimeout(showCongratsPopupWithRandomIframe, 300);
+            }
+            
+            answeredInBlock = 0; 
+            correctInBlock = 0;  
+        }
+
+        function showInstantFeedback() {
+            if (currentTestQuestions.length === 0 || currentQuestionIndex >= currentTestQuestions.length) return;
+            const question = currentTestQuestions[currentQuestionIndex];
+            const userAnswer = userAnswers[question.id];
+            if (userAnswer === undefined) { instantFeedback.style.display = 'none'; return; }
+            const isCorrect = userAnswer === question.correta;
+            instantFeedback.textContent = isCorrect ? `✅ Resposta correta! (${question.correta.toUpperCase()})` : `❌ Resposta incorreta! A correta é ${question.correta.toUpperCase()}`;
+            instantFeedback.className = isCorrect ? 'instant-feedback correct' : 'instant-feedback incorrect';
+            instantFeedback.style.display = 'block';
+            setTimeout(() => instantFeedback.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+        }
+
+        function updateProgressBar() {
+            const progress = currentTestQuestions.length > 0 ? (answeredQuestions / currentTestQuestions.length) * 100 : 0;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        function updateNavigationButtons() {
+            prevBtn.disabled = currentQuestionIndex === 0;
+            const questionId = currentTestQuestions[currentQuestionIndex]?.id;
+            const answeredCurrent = userAnswers[questionId] !== undefined;
+            
+            if (currentQuestionIndex === currentTestQuestions.length - 1) { // Se é a última questão
+                nextBtn.style.display = 'none';
+                finishBtn.style.display = 'block';
+                finishBtn.disabled = !answeredCurrent; // Habilita finalizar apenas se a última foi respondida
+            } else { // Não é a última questão
+                nextBtn.style.display = 'block';
+                finishBtn.style.display = 'none';
+                nextBtn.disabled = !answeredCurrent; // Habilita próxima apenas se a atual foi respondida
+            }
+            if(currentQuestionIndex > 0) prevBtn.disabled = false; // Se não for a primeira, botão anterior sempre habilitado
+        }
+
+        function nextQuestion() {
+            showInstantFeedback(); 
+
+            if (showFeedbackOnNext) { 
+                showBlockFeedback(); 
+            } else {
+                if (currentQuestionIndex < currentTestQuestions.length - 1) {
+                    setTimeout(() => { 
+                        currentQuestionIndex++;
+                        displayCurrentQuestion();
+                    }, 300); // Delay apenas se não houver feedback de bloco
+                }
+            }
+        }
+
+
+        function previousQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                displayCurrentQuestion();
+            }
+        }
+        
+        function finishTest() {
+            const currentQuestionId = currentTestQuestions[currentQuestionIndex]?.id;
+            if(userAnswers[currentQuestionId] === undefined && currentQuestionIndex === currentTestQuestions.length -1) {
+                alert("Por favor, responda à questão atual antes de finalizar.");
+                return; 
+            }
+
+            showInstantFeedback(); 
+
+            if (showFeedbackOnNext && currentQuestionIndex === currentTestQuestions.length - 1) {
+                showBlockFeedback(); 
+            } else {
+                actuallyFinishTest(); 
+            }
+        }
+
+        function actuallyFinishTest() {
+             if (hasFinishedCurrentTestProcessing) {
+                console.warn("actuallyFinishTest: Processamento já realizado para esta tentativa. Exibindo resultados existentes.");
+                const lastAttempt = testStatistics.attemptsHistory && testStatistics.attemptsHistory.length > 0 
+                                     ? testStatistics.attemptsHistory[testStatistics.attemptsHistory.length -1]
+                                     : null;
+                if(lastAttempt && typeof lastAttempt.total === 'number' && lastAttempt.total > 0) { 
+                    showResultsPage(parseFloat(lastAttempt.score), (lastAttempt.correct / lastAttempt.total) * 100, lastAttempt.correct, lastAttempt.total);
+                } else { 
+                    showResultsPage(0, 0, 0, 0); 
+                }
+                return;
+            }
+
+
+            const delay = userAnswers[currentTestQuestions[currentQuestionIndex]?.id] !== undefined ? 300 : 0;
+            setTimeout(() => {
+                // currentFileId é sempre EMBEDDED_QUIZ_ID, não precisa checar se é null
+                
+                testStatistics.correct = [];
+                testStatistics.incorrect = [];
+                testStatistics.performanceByArea = {}; 
+                
+                currentTestQuestions.forEach((question) => {
+                    const userAnswer = userAnswers[question.id]; 
+                    if (userAnswer === undefined) return; 
+
+                    if (question.area) {
+                        if (!testStatistics.performanceByArea[question.area]) {
+                            testStatistics.performanceByArea[question.area] = { correct: 0, total: 0 };
+                        }
+                        testStatistics.performanceByArea[question.area].total++;
+                    }
+
+                    if (userAnswer === question.correta) {
+                        testStatistics.correct.push(question.id);
+                        if (question.area) {
+                            testStatistics.performanceByArea[question.area].correct++;
+                        }
+                    } else {
+                        testStatistics.incorrect.push(question.id);
+                        testStatistics.questionMistakes[question.id] = (testStatistics.questionMistakes[question.id] || 0) + 1;
+                    }
+                });
+                
+                const correctCount = testStatistics.correct.length;
+                const totalAnsweredInTest = correctCount + testStatistics.incorrect.length;
+                
+                const correctPercentage = totalAnsweredInTest > 0 ? ((correctCount / totalAnsweredInTest) * 100) : 0; 
+                const finalScore = totalAnsweredInTest > 0 ? ((correctCount / totalAnsweredInTest) * 10) : 0; 
+                
+                if (totalAnsweredInTest > 0) { // Salva no histórico apenas se houver respostas
+                    if (!testStatistics.attemptsHistory) testStatistics.attemptsHistory = [];
+                    testStatistics.attemptsHistory.push({
+                        date: new Date().toLocaleString(),
+                        correct: correctCount,
+                        total: totalAnsweredInTest,
+                        score: finalScore.toFixed(1),
+                        attemptNumber: testStatistics.attemptCount, 
+                        questionIdsInAttempt: currentTestQuestions.map(q => q.id),
+                        userAnswersInAttempt: {...userAnswers} 
+                    });
+                }
+                
+                saveStats(testStatistics); // Salva estatísticas atualizadas
+                hasFinishedCurrentTestProcessing = true; 
+                showResultsPage(finalScore, correctPercentage, correctCount, totalAnsweredInTest);
+            }, delay);
+        }
+
+        function showResultsPage(score, percentage, correctCount, totalAttempted) {
+            quizPage.style.display = 'none';
+            resultsPage.style.display = 'block';
+
+            const resultsMainBox = document.getElementById('results-main-box');
+            resultsMainBox.classList.remove('results-box-bad', 'results-box-average', 'results-box-good');
+            if (score < 6) {
+                resultsMainBox.classList.add('results-box-bad');
+            } else if (score < 8) {
+                resultsMainBox.classList.add('results-box-average');
+            } else {
+                resultsMainBox.classList.add('results-box-good');
+            }
+
+            const finalScoreBox = document.getElementById('finalScoreText');
+            finalScoreBox.textContent = `${score.toFixed(1)}`;
+            finalScoreBox.className = 'final-score-value-box'; 
+            if (score < 6) {
+                finalScoreBox.classList.add('score-bad');
+            } else if (score < 8) {
+                finalScoreBox.classList.add('score-average');
+            } else {
+                finalScoreBox.classList.add('score-good');
+            }
+            
+            finalPercentageText.innerHTML = `Você acertou <strong>${correctCount}</strong> de <strong>${totalAttempted}</strong> questões respondidas (<strong>${percentage.toFixed(1)}%</strong>)`;
+            
+            destroyCharts();
+            generateCharts(); 
+            generateQuestionsAnalysis(); 
+            resetStatsBtn.disabled = false; // Habilita o botão de reset, pois há um resultado para o simulado
+            
+            const resultsTitleEl = document.getElementById('resultsTitle');
+            if(resultsTitleEl) {
+                resultsTitleEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function destroyCharts() { 
+            Object.keys(charts).forEach(key => {
+                if (charts[key] && typeof charts[key].destroy === 'function') {
+                    charts[key].destroy();
+                }
+                charts[key] = null;
+            });
+        }
+        
+        function updateCharts() { 
+            destroyCharts(); 
+            setTimeout(() => {
+                generateCharts();
+            }, 50);
+        }
+
+        function generateCharts() {
+            // currentFileId é sempre EMBEDDED_QUIZ_ID, não precisa checar
+            destroyCharts(); 
+            
+            const textColor = getComputedStyle(document.body).getPropertyValue('--text-primary').trim();
+            const borderColorCSS = getComputedStyle(document.body).getPropertyValue('--border-color').trim();
+            const correctColor = getComputedStyle(document.body).getPropertyValue('--accent-color').trim();
+            const incorrectColor = getComputedStyle(document.body).getPropertyValue('--danger-color').trim();
+            const primaryColor = getComputedStyle(document.body).getPropertyValue('--primary-color').trim();
+            const bgCardColor = getComputedStyle(document.body).getPropertyValue('--bg-card').trim();
+
+            const correctAnswersCount = testStatistics.correct.length;
+            const incorrectAnswersCount = testStatistics.incorrect.length;
+
+            // Gráfico de Desempenho Geral (Pizza)
+            if (correctAnswersCount > 0 || incorrectAnswersCount > 0) { // Só mostra se houver dados
+                charts.performance = new Chart(document.getElementById('performanceChart').getContext('2d'), {
+                    type: 'pie',
+                    data: {
+                        labels: ['Acertos', 'Erros'],
+                        datasets: [{
+                            data: [correctAnswersCount, incorrectAnswersCount],
+                            backgroundColor: [correctColor, incorrectColor],
+                            borderColor: bgCardColor, borderWidth: 2
+                        }]
+                    },
+                    options: getChartOptions('Desempenho na Prova Atual', textColor)
+                });
+            }
+
+
+            // Gráfico de Progresso nas Tentativas (Barras)
+            const attemptLabels = (testStatistics.attemptsHistory || []).map((a, i) => `Tent. ${a.attemptNumber || i + 1}`);
+            const attemptScores = (testStatistics.attemptsHistory || []).map(a => parseFloat(a.score));
+            if (attemptLabels.length > 0) { // Só mostra se houver histórico
+                charts.progress = new Chart(document.getElementById('progressChart').getContext('2d'), {
+                    type: 'bar', 
+                    data: {
+                        labels: attemptLabels,
+                        datasets: [{
+                            label: 'Nota (0-10)', 
+                            data: attemptScores, 
+                            backgroundColor: primaryColor + 'B3', 
+                            borderColor: primaryColor,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: getChartOptions('Progresso nas Tentativas (Neste Simulado)', textColor, {
+                        scales: { 
+                            y: { beginAtZero: true, max: 10, ticks: { color: textColor, stepSize: 1 }, grid: { color: borderColorCSS + '80' } },
+                            x: { ticks: { color: textColor }, grid: { color: borderColorCSS + '80' } } 
+                        },
+                        animation: { // Para mostrar o valor em cima da barra
+                            onComplete: function() {
+                                const chartInstance = this;
+                                const ctx = chartInstance.ctx;
+                                const fontFam = getComputedStyle(document.body).getPropertyValue('--font-main').split(',')[0].trim() || 'Poppins';
+                                ctx.font = `600 11px ${fontFam}`;
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'bottom';
+                                ctx.fillStyle = textColor;
+
+                                this.data.datasets.forEach(function(dataset, i) {
+                                    const meta = chartInstance.getDatasetMeta(i);
+                                    if (!meta.hidden) {
+                                        meta.data.forEach(function(bar, index) {
+                                            const data = dataset.data[index];
+                                            if (data !== null && data !== undefined) {
+                                                const score = parseFloat(data).toFixed(1);
+                                                ctx.fillText(score, bar.x, bar.y - 6); 
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        }
+                    })
+                });
+            }
+            
+            // Gráfico de Acertos por Área (Barras Horizontais)
+            const areaLabels = Object.keys(testStatistics.performanceByArea || {});
+            const areaPerformance = areaLabels.map(area => {
+                const data = testStatistics.performanceByArea[area];
+                return data.total > 0 ? (data.correct / data.total) * 100 : 0;
+            });
+            
+            const areasChartCard = document.getElementById('areasChartCard');
+            if (areasChartCard && areaLabels.length > 0) { // Só mostra se houver áreas e dados
+                areasChartCard.style.display = 'block'; 
+                charts.areas = new Chart(document.getElementById('areasChart').getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: areaLabels,
+                        datasets: [{
+                            label: '% Acerto por Área (Prova Atual)', data: areaPerformance, backgroundColor: primaryColor + 'B3',
+                            borderColor: primaryColor, borderWidth: 1
+                        }]
+                    },
+                    options: getChartOptions('Desempenho por Área (Prova Atual)', textColor, {
+                        indexAxis: 'y',
+                        scales: { 
+                            y: { ticks: { color: textColor }, grid: { color: borderColorCSS + '80' } },
+                            x: { beginAtZero: true, max: 100, ticks: { color: textColor, callback: function(value) { return value + "%" } }, grid: { color: borderColorCSS + '80' } }
+                        }
+                    })
+                });
+            } else if (areasChartCard) {
+                areasChartCard.style.display = 'none'; 
+            }
+
+            // Gráfico de Questões Mais Erradas (Barras)
+            const mistakeCountsOverall = {};
+            Object.entries(testStatistics.questionMistakes || {}).forEach(([qId, count]) => {
+                if (count > 0) {
+                    const originalQuestionIndex = allQuestions.findIndex(q => q.id === qId); 
+                    if (originalQuestionIndex !== -1) { 
+                        mistakeCountsOverall[`Q${originalQuestionIndex + 1}`] = count;
+                    }
+                }
+            });
+            const sortedMistakesOverall = Object.entries(mistakeCountsOverall)
+                                                 .sort(([,a],[,b]) => b-a) // Ordena por mais erradas
+                                                 .slice(0,10); // Pega o Top 10
+            
+            if (sortedMistakesOverall.length > 0) { // Só mostra se houver erros
+                charts.mistakes = new Chart(document.getElementById('mistakesChart').getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: sortedMistakesOverall.map(item => item[0]),
+                        datasets: [{
+                            label: 'Vezes Erradas (Top 10 - Este Simulado)', data: sortedMistakesOverall.map(item => item[1]),
+                            backgroundColor: incorrectColor + 'B3', borderColor: incorrectColor, borderWidth: 1
+                        }]
+                    },
+                    options: getChartOptions('Questões Mais Erradas (Este Simulado)', textColor, {
+                        scales: { 
+                            y: { beginAtZero: true, ticks: { color: textColor, stepSize: 1 }, grid: { color: borderColorCSS + '80' } },
+                            x: { ticks: { color: textColor }, grid: { color: borderColorCSS + '80' } } 
+                        },
+                        onClick: (event, elements) => { 
+                            if (elements.length > 0) {
+                                const chartElement = elements[0];
+                                const index = chartElement.index;
+                                const questionLabel = charts.mistakes.data.labels[index]; 
+                                const questionNumberStr = questionLabel.substring(1); 
+                                const questionNumber = parseInt(questionNumberStr); 
+                                if (!isNaN(questionNumber) && questionNumber > 0 && questionNumber <= allQuestions.length) {
+                                    const questionData = allQuestions[questionNumber - 1]; 
+                                    displayQuestionInPopup(questionData);
+                                } else {
+                                    console.error("Não foi possível encontrar a questão para o label:", questionLabel);
+                                }
+                            }
+                        }
+                    })
+                });
+            }
+            generateAdditionalCharts();
+        }
+
+        function generateAdditionalCharts() {
+            const textColor = getComputedStyle(document.body).getPropertyValue('--text-primary').trim();
+            const borderColorCSS = getComputedStyle(document.body).getPropertyValue('--border-color').trim();
+            const bgCardColor = getComputedStyle(document.body).getPropertyValue('--bg-card').trim();
+
+            // Gráfico de Tamanho da Questão
+            const SMALL_Q_THRESHOLD_NEW = 400; 
+            const MEDIUM_Q_THRESHOLD_NEW = 800; 
+            let smallQ = 0, mediumQ = 0, longQ = 0;
+            
+            currentTestQuestions.forEach(q => {
+                let totalLength = q.enunciado ? q.enunciado.length : 0;
+                if (q.alternativas) {
+                    Object.values(q.alternativas).forEach(altText => {
+                        if (altText) totalLength += altText.length;
+                    });
+                }
+                if (totalLength < SMALL_Q_THRESHOLD_NEW) smallQ++;
+                else if (totalLength < MEDIUM_Q_THRESHOLD_NEW) mediumQ++;
+                else longQ++;
+            });
+
+            const qSizeColors = [
+                'rgba(75, 192, 192, 0.7)',  
+                'rgba(255, 206, 86, 0.7)', 
+                'rgba(255, 99, 132, 0.7)'   
+            ];
+            const qSizeBorderColors = [
+                'rgba(75, 192, 192, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(255, 99, 132, 1)'
+            ];
+
+            if (smallQ > 0 || mediumQ > 0 || longQ > 0) {
+                charts.questionSizeChart = new Chart(document.getElementById('questionSizeChart').getContext('2d'), {
+                    type: 'bar', 
+                    data: {
+                        labels: [`Pequenas (<${SMALL_Q_THRESHOLD_NEW}c)`, `Médias (${SMALL_Q_THRESHOLD_NEW}-${MEDIUM_Q_THRESHOLD_NEW}c)`, `Longas (>${MEDIUM_Q_THRESHOLD_NEW}c)`],
+                        datasets: [{ 
+                            label: 'Quantidade de Questões', 
+                            data: [smallQ, mediumQ, longQ],
+                            backgroundColor: qSizeColors,
+                            borderColor: qSizeBorderColors,
+                            borderWidth: 1 
+                        }]
+                    },
+                    options: getChartOptions('Tamanho de Questão (Enunciado + Alternativas)', textColor, {
+                        indexAxis: 'y', 
+                        scales: { 
+                            x: { beginAtZero: true, ticks: { color: textColor, stepSize: Math.max(1, Math.ceil(Math.max(1, smallQ,mediumQ,longQ) / 5)) }, grid: { color: borderColorCSS + '80' } }, 
+                            y: { ticks: { color: textColor }, grid: { display: false } } 
+                        },
+                        plugins: { legend: { display: false } }
+                    })
+                });
+            }
+
+
+            // Gráfico de Tempo por Questão (Simulado - dados fictícios por enquanto)
+            const timeLabels = currentTestQuestions.slice(0,10).map((q,i) => { // Mostra para as 10 primeiras da prova atual
+                const globalIndex = allQuestions.findIndex(aq => aq.id === q.id);
+                return `Q${globalIndex !== -1 ? globalIndex + 1 : i + 1}`; // Usa o índice global se possível
+            });
+            // TODO: Implementar medição real de tempo por questão se desejado.
+            // Por agora, dados aleatórios apenas para visualização.
+            const timeData = Array.from({length: timeLabels.length}, () => Math.floor(Math.random() * 90) + 30); 
+            
+            if (timeLabels.length > 0) {
+                charts.timePerQuestion = new Chart(document.getElementById('timePerQuestionChart').getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: timeLabels,
+                        datasets: [{ 
+                            label: 'Tempo (s)', 
+                            data: timeData,
+                            backgroundColor: 'rgba(54, 162, 235, 0.7)', 
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1 
+                        }]
+                    },
+                    options: getChartOptions('Tempo por Questão (Simulado - Amostra)', textColor, {
+                        scales: { 
+                            y: { beginAtZero: true, ticks: { color: textColor }, grid: { color: borderColorCSS + '80' } },
+                            x: { ticks: { color: textColor }, grid: { color: borderColorCSS + '80' } } 
+                        },
+                        plugins: { legend: { display: false } }
+                    })
+                });
+            }
+        }
+
+        function getChartOptions(title, textColor, customOptions = {}) {
+            const gridColor = getComputedStyle(document.body).getPropertyValue('--border-color').trim() + '60'; // Grid mais sutil
+
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: textColor, font: { family: 'Poppins', size: 12 } }
+                    },
+                    title: { display: true, text: title, color: textColor, font: { family: 'Poppins', size: 14, weight: '600' }, padding: {bottom: 10} }
+                },
+                scales: customOptions.scales ? { // Configuração de eixos se fornecida
+                    y: {
+                        ...(customOptions.scales.y || {}),
+                        ticks: { ...(customOptions.scales.y?.ticks || {}), color: textColor },
+                        grid: { ...(customOptions.scales.y?.grid || {}), color: gridColor, drawBorder: false }
+                    },
+                    x: {
+                        ...(customOptions.scales.x || {}),
+                        ticks: { ...(customOptions.scales.x?.ticks || {}), color: textColor },
+                        grid: { ...(customOptions.scales.x?.grid || {}), color: gridColor, drawBorder: false }
+                    }
+                } : undefined, // Se não houver custom scales, não define a propriedade scales (útil para gráficos de pizza)
+                ...customOptions // Permite sobrescrever ou adicionar outras opções
+            };
+        }
+        
+        function displayQuestionInPopup(question) {
+            let imageHtml = question.imagem && question.imagem !== 'null' ? `<img src="${question.imagem}" alt="Imagem da questão" class="question-image" style="max-height: 200px; margin-bottom: 15px;">` : '';
+            
+            let optionsHtml = '<div class="options" style="gap: 8px; pointer-events: none;">'; // Desabilita cliques nas opções do popup
+            Object.entries(question.alternativas).forEach(([letter, text]) => {
+                let optClass = 'option';
+                let optInnerStyle = 'margin-bottom: 8px; border-width: 1px; padding: 10px;';
+                
+                if (letter === question.correta) {
+                    optClass += ' correct'; 
+                    // Estilo para destacar a correta no popup
+                    optInnerStyle += `background-color: var(--accent-light); border-left-color: var(--accent-color); border-left-width: 4px;`;
+                } else {
+                     optInnerStyle += `background-color: transparent;`; 
+                }
+
+                optionsHtml += `<div class="${optClass}" style="${optInnerStyle}">
+                                     <span class="option-letter-styled">${letter.toUpperCase()})</span>
+                                     <span class="option-actual-text" style="color: var(--text-primary);">${text}</span>
+                                 </div>`;
+            });
+            optionsHtml += '</div>';
+
+            const formattedEnunciado = formatEnunciado(question.enunciado);
+            const formattedExplicacao = question.explicacao ? formatEnunciado(question.explicacao) : '';
+
+            questionDetailContent.innerHTML = `
+                <div class="question-container" style="border: none; box-shadow: none; padding:0; margin-bottom:0;">
+                    <h4 style="color: var(--primary-color); text-align:left; margin-bottom:10px;">Detalhe da Questão</h4>
+                    <div class="question-text" style="margin-bottom:15px; font-size: 1rem;">${formattedEnunciado}</div>
+                    ${imageHtml}
+                    ${optionsHtml}
+                    ${formattedExplicacao ? `<div class="explanation" style="display:block; margin-top: 15px; padding:10px; background-color: var(--bg-main); border-radius: 6px;"><strong style="color:var(--text-secondary);">Explicação:</strong><br>${formattedExplicacao}</div>` : ''}
+                </div>
+            `;
+            questionDetailPopup.classList.add('active');
+        }
+
+        function closeQuestionDetailPopup() {
+            questionDetailPopup.classList.remove('active');
+            questionDetailContent.innerHTML = ''; 
+        }
+
+        function generateQuestionsAnalysis() {
+            questionsAnalysis.innerHTML = ''; 
+            currentTestQuestions.forEach((question, index) => {
+                const userAnswer = userAnswers[question.id]; 
+                if (userAnswer === undefined) return; // Só analisa questões respondidas na tentativa atual
+
+                const isCorrect = userAnswer === question.correta;
+                const questionDiv = document.createElement('div');
+                
+                questionDiv.className = `question-container ${isCorrect ? 'correct' : 'incorrect'}`;
+                questionDiv.style.marginBottom = '20px';
+
+                let imageHtml = question.imagem && question.imagem !== 'null' ? `<img src="${question.imagem}" alt="Imagem da questão" class="question-image">` : '';
+                
+                let optionsHtml = Object.entries(question.alternativas).map(([letter, text]) => {
+                    let optClass = 'option'; 
+                    let optStyle = 'pointer-events: none; transform: none; margin-bottom: 8px; border-width: 1px;'; 
+
+                    if (letter === question.correta) optClass += ' correct'; 
+                    if (letter === userAnswer && !isCorrect) optClass += ' selected incorrect'; 
+                    else if (letter === userAnswer && isCorrect) optClass += ' selected';
+
+                    return `<div class="${optClass}" style="${optStyle}">
+                                 <span class="option-letter-styled">${letter.toUpperCase()})</span>
+                                 <span class="option-actual-text" style="color: var(--text-primary);">${text}</span>
+                             </div>`;
+                }).join('');
+
+                let correctAnswerBox = '';
+                if (!isCorrect) { // Mostra a caixa de resposta correta apenas se o usuário errou
+                    correctAnswerBox = `<div class="analysis-correct-answer">
+                        <strong>Resposta Correta: ${question.correta.toUpperCase()})</strong> ${question.alternativas[question.correta]}
+                    </div>`;
+                }
+
+                const formattedEnunciado = formatEnunciado(question.enunciado);
+                const formattedExplicacao = question.explicacao ? formatEnunciado(question.explicacao) : '';
+
+                questionDiv.innerHTML = `
+                    <div class="question-number">Questão ${index + 1} - ${isCorrect ? 'Acertou' : 'Errou'}</div>
+                    <div class="question-text" style="margin-bottom:15px;">${formattedEnunciado}</div>
+                    ${imageHtml}
+                    <div class="options" style="gap: 0;">${optionsHtml}</div>
+                    ${correctAnswerBox} 
+                    ${formattedExplicacao ? `<div class="explanation" style="display:block; margin-top: 15px;">${formattedExplicacao}</div>` : ''}`;
+                questionsAnalysis.appendChild(questionDiv);
+            });
+        }
+        
+        function startNewAttempt(isMistakesQuizForce = false) {
+            if (allQuestions.length === 0) { 
+                alert("Nenhuma questão carregada. Verifique a configuração das questões embutidas.");
+                return;
+            }
+            
+             if (quizStartOptionsPopup.classList.contains('active')) {
+                closeQuizOptionsPopup();
+            }
+            
+            if (isMistakesQuizForce) {
+                const distinctMistakesCount = Object.values(testStatistics.questionMistakes || {}).filter(count => count > 0).length;
+                if (distinctMistakesCount > 0) { 
+                    initializeTest(true, 10); 
+                } else {
+                     alert("Não há questões erradas para revisar neste simulado. Iniciando prova normal.");
+                    initializeTest(false, Math.min(40, allQuestions.length));
+                }
+            } else {
+                initializeTest(false, Math.min(40, allQuestions.length));
+            }
+        }
+
+        // REMOVIDA: function loadNewFile() { location.reload(); }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            quizPage.style.display = 'none'; 
+            resultsPage.style.display = 'none'; // Esconde a página de resultados inicialmente
+            
+            loadEmbeddedQuizAndShowOptions(); // Carrega o simulado embutido e mostra opções
+
+            if (document.body.classList.contains('dark-mode')) {
+                darkModeText.textContent = 'Modo Claro';
+                darkModeTextResults.textContent = 'Modo Claro';
+            } else {
+                darkModeText.textContent = 'Modo Escuro';
+                darkModeTextResults.textContent = 'Modo Escuro';
+            }
+        });
+
+    </script>
+</body>
+</html>

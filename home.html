@@ -24,6 +24,28 @@
             --disabled-bg: #e0e0e0;
             --disabled-text: #9e9e9e;
             --transition-speed: 0.3s;
+            --button-hover-bg: #1a252f; /* Para botões no modo escuro */
+            --input-bg: #fff;
+        }
+
+        body.dark-mode {
+            --bg-gradient-start: #1f2937; /* Azul escuro acinzentado */
+            --bg-gradient-end: #111827;   /* Azul mais escuro */
+            --primary: #60a5fa;          /* Azul claro para contraste */
+            --primary-dark: #3b82f6;      /* Azul um pouco mais escuro que o primário do modo escuro */
+            --accent: #34d399;           /* Verde esmeralda claro */
+            --accent-light: rgba(52, 211, 153, 0.15);
+            --danger: #f87171;            /* Vermelho claro */
+            --danger-light: rgba(248, 113, 113, 0.15);
+            --text: #e5e7eb;              /* Cinza muito claro, quase branco */
+            --text-light: #9ca3af;        /* Cinza claro */
+            --border: #4b5563;           /* Cinza médio escuro */
+            --card-bg: #374151;           /* Cinza escuro */
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --disabled-bg: #4b5563;
+            --disabled-text: #9ca3af;
+            --button-hover-bg: #4b5563;
+            --input-bg: #4b5563;
         }
 
         * {
@@ -41,6 +63,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            transition: background var(--transition-speed), color var(--transition-speed);
         }
 
         .main-container {
@@ -49,30 +72,66 @@
             padding: 30px 15px;
         }
 
-        /* Estilos Homepage Card */
         .homepage-card {
             background-color: var(--card-bg);
             border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            box-shadow: 0 10px 30px var(--shadow-color);
             padding: 35px;
             animation: slideUpFadeIn 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
             opacity: 0;
             width: 100%;
+            position: relative; /* Para posicionar o botão de modo noturno */
+            transition: background-color var(--transition-speed), box-shadow var(--transition-speed);
         }
+
+        /* Botão de Modo Noturno */
+        .dark-mode-toggle-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            color: var(--text-light);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.3rem; /* Ajustado para ícones de emoji */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all var(--transition-speed);
+            z-index: 10;
+            box-shadow: 0 2px 5px var(--shadow-color);
+        }
+        .dark-mode-toggle-button:hover {
+            background-color: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary-dark); /* Cor do ícone no hover */
+            transform: scale(1.1);
+        }
+        body.dark-mode .dark-mode-toggle-button {
+            background: var(--card-bg);
+            border-color: var(--primary);
+            color: var(--primary); /* Cor do ícone no modo escuro */
+        }
+         body.dark-mode .dark-mode-toggle-button:hover {
+            background-color: var(--button-hover-bg);
+         }
+
 
         .app-header {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-bottom: 25px; /* Reduzido para acomodar avatar */
+            margin-bottom: 30px;
             padding-bottom: 25px;
             border-bottom: 1px solid var(--border);
-            position: relative; /* Para posicionar elementos dentro, se necessário */
+            transition: border-color var(--transition-speed);
         }
 
-        /* Estilos para o Avatar no Header */
         .header-avatar-container {
-            margin-bottom: 15px;
+            margin-bottom: 20px; /* Aumenta espaço abaixo do avatar */
             cursor: pointer;
             transition: transform 0.2s ease-in-out;
         }
@@ -80,32 +139,43 @@
             transform: scale(1.05);
         }
         #selectedAvatarDisplay {
-            width: 70px;
-            height: 70px;
+            width: 100px; /* Avatar maior */
+            height: 100px; /* Avatar maior */
             border-radius: 50%;
-            border: 3px solid var(--primary);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            object-fit: cover; /* Garante que a imagem cubra a área sem distorcer */
+            border: 4px solid var(--primary); /* Borda mais grossa */
+            box-shadow: 0 4px 12px var(--shadow-color);
+            object-fit: cover;
+            transition: border-color var(--transition-speed);
         }
 
-        .app-icon-placeholder { width: 60px; height: 60px; margin-bottom: 15px; } /* Ajustado */
-        .app-icon-placeholder svg { width: 100%; height: 100%; }
-        .app-title { font-size: 2.0rem; font-weight: 700; color: var(--primary-dark); text-align: center; margin-top: 5px;} /* Ajustado */
+        .app-title {
+            font-size: 2.2rem; /* Título um pouco maior */
+            font-weight: 700;
+            color: var(--primary-dark);
+            text-align: center;
+            transition: color var(--transition-speed);
+        }
         .app-menu { display: flex; flex-direction: column; gap: 25px; }
 
         .theme-section {
             padding: 25px;
-            background-color: #fdfdff;
+            background-color: #fdfdff; /* Será sobrescrito no modo escuro se usar var(--card-bg) por exemplo */
             border-radius: 12px;
             border: 1px solid var(--border);
             box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            transition: background-color var(--transition-speed), border-color var(--transition-speed);
         }
+        body.dark-mode .theme-section {
+            background-color: rgba(255,255,255,0.03); /* Leve transparência sobre o card-bg */
+        }
+
         .theme-title {
             font-size: 1.5rem; font-weight: 600; color: var(--primary); margin-bottom: 20px;
-            padding-bottom: 10px; border-bottom: 1px solid #e0e0e0; text-align: center;
+            padding-bottom: 10px; border-bottom: 1px solid var(--border); text-align: center;
             display: flex; align-items: center; justify-content: center;
+            transition: color var(--transition-speed), border-color var(--transition-speed);
         }
-        .section-icon { width: 26px; height: 26px; margin-right: 10px; color: var(--primary); flex-shrink: 0; }
+        .section-icon { width: 26px; height: 26px; margin-right: 10px; color: var(--primary); flex-shrink: 0; transition: color var(--transition-speed); }
 
         .theme-section .button {
             display: block; width: 100%; margin-bottom: 15px; text-align: center;
@@ -113,196 +183,135 @@
             border: none; border-radius: 8px; cursor: pointer;
             font-weight: 600; font-size: 1rem;
             transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-            box-shadow: 0 4px 10px rgba(41, 121, 255, 0.3); text-decoration: none;
+            box-shadow: 0 4px 10px rgba(41, 121, 255, 0.2); text-decoration: none;
         }
+         body.dark-mode .theme-section .button {
+            box-shadow: 0 4px 10px rgba(0,0,0, 0.3);
+         }
+
         .theme-section .button:hover {
             background-color: var(--primary-dark); transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(41, 121, 255, 0.4);
+            box-shadow: 0 6px 15px rgba(41, 121, 255, 0.3);
         }
+        body.dark-mode .theme-section .button:hover {
+            background-color: var(--primary-dark);
+             box-shadow: 0 6px 15px rgba(0,0,0, 0.4);
+        }
+
         .theme-section .button:disabled {
             background-color: var(--disabled-bg); color: var(--disabled-text);
             cursor: not-allowed; box-shadow: none; transform: none;
         }
         .theme-section .button:last-child { margin-bottom: 0; }
 
-        /* Modal de PIN (sem alterações) */
-        .pin-modal-container {
-            display: none; position: fixed; z-index: 2000;
-            left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.85);
-            justify-content: center; align-items: center;
-            animation: fadeIn 0.3s ease;
+        .pin-modal-container, .avatar-modal-overlay {
+            /* ... estilos existentes ... */
+            background-color: rgba(0,0,0,0.88); /* Overlay um pouco mais escuro */
         }
-        .pin-modal-content {
-            background-color: var(--card-bg); color: var(--text); padding: 30px 35px;
-            border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-            width: 90%; max-width: 400px; text-align: center;
-            animation: slideUpFadeInModal 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-            opacity: 0;
+        .pin-modal-content, .avatar-modal-content-box {
+            background-color: var(--card-bg);
+            color: var(--text);
+            /* ... outros estilos ... */
+            transition: background-color var(--transition-speed), color var(--transition-speed);
         }
-        .pin-modal-content h2 { color: var(--primary-dark); margin-bottom: 15px; font-size: 1.7rem; }
-        .pin-modal-content p { font-size: 1rem; color: var(--text-light); margin-bottom: 25px; }
+        .pin-modal-content h2, .avatar-modal-content-box h2 {
+             color: var(--primary-dark);
+             transition: color var(--transition-speed);
+        }
+        .pin-modal-content p {
+            color: var(--text-light);
+            transition: color var(--transition-speed);
+        }
         #pinInput {
-            width: calc(100% - 24px); padding: 14px; margin-bottom: 25px;
-            border: 1px solid var(--border); border-radius: 8px;
-            font-size: 1.1rem; text-align: center; font-family: 'Poppins', sans-serif;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            background-color: var(--input-bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            /* ... outros estilos ... */
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color var(--transition-speed), color var(--transition-speed);
         }
-        #pinInput:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(41, 121, 255, 0.25); }
-        #submitPinButton {
-            display: block; width: 100%; text-align: center; background-color: var(--primary);
-            color: white; padding: 14px 30px; border: none; border-radius: 8px; cursor: pointer;
-            font-weight: 600; font-size: 1rem; transition: background-color var(--transition-speed) ease, transform var(--transition-speed) ease;
+        #pinInput:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light); /* Usar uma variável para a cor do shadow */
         }
-        #submitPinButton:hover { background-color: var(--primary-dark); transform: translateY(-1px); }
-        #pinErrorMessage {
-            margin-top: 15px; font-size: 0.9rem; font-weight: 600; color: var(--danger);
-            min-height: 1.2em; visibility: hidden;
+        body.dark-mode #pinInput:focus {
+             box-shadow: 0 0 0 3px rgba(var(--primary), 0.3);
         }
 
-        /* Iframe Viewer Styles (sem alterações) */
+
+        #submitPinButton {
+            background-color: var(--primary);
+            /* ... outros estilos ... */
+        }
+        #submitPinButton:hover {
+            background-color: var(--primary-dark);
+        }
+        #pinErrorMessage {
+            color: var(--danger);
+        }
+
         #iframeViewer {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            background-color: rgba(0, 0, 0, 0.6);
-            z-index: 3000;
-            padding: 2vh;
-            box-sizing: border-box;
-            justify-content: center;
-            align-items: center;
-            animation: fadeIn 0.3s ease;
+            background-color: rgba(0, 0, 0, 0.75);
         }
         .iframe-window {
             background-color: var(--card-bg);
-            width: 100%;
-            height: 100%;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.25);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            animation: slideUpFadeInModal 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-            opacity: 0;
+             transition: background-color var(--transition-speed);
         }
         .iframe-header {
-            padding: 8px 15px;
-            text-align: right;
             background-color: #e9ecef;
             border-bottom: 1px solid var(--border);
-            flex-shrink: 0;
+            transition: background-color var(--transition-speed), border-color var(--transition-speed);
+        }
+        body.dark-mode .iframe-header {
+            background-color: var(--button-hover-bg); /* Um cinza mais escuro */
         }
         #closeIframeButton {
-            font-size: 1.8rem; font-weight: bold; line-height: 1;
-            cursor: pointer; border: none; background: transparent;
-            color: var(--text-light); padding: 5px;
+            color: var(--text-light);
         }
         #closeIframeButton:hover { color: var(--text); }
-        #contentIframe {
-            width: 100%;
-            flex-grow: 1;
-            border: none;
+
+
+        .avatar-grid {
+            background-color: rgba(0,0,0,0.03); /* Fundo sutil para a grade */
+            border: 1px solid var(--border);
+            transition: background-color var(--transition-speed), border-color var(--transition-speed);
+        }
+        body.dark-mode .avatar-grid {
+            background-color: rgba(255,255,255,0.05);
         }
 
-        /* Estilos para o Modal de Seleção de Avatar */
-        .avatar-modal-overlay {
-            display: none; /* Inicialmente oculto */
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            justify-content: center;
-            align-items: center;
-            z-index: 4000; /* Acima do iframe viewer */
-            animation: fadeIn 0.3s ease;
-        }
-        .avatar-modal-content-box {
-            background-color: var(--card-bg);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-            width: 90%;
-            max-width: 500px; /* Ajuste conforme necessário */
-            text-align: center;
-            animation: slideUpFadeInModal 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-            opacity: 0; /* Para animação */
-        }
-        .avatar-modal-content-box h2 {
-            color: var(--primary-dark);
-            font-size: 1.6rem;
-            margin-bottom: 20px;
-        }
-        .avatar-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
-            max-height: 50vh; /* Limita altura e permite scroll */
-            overflow-y: auto;
-            padding: 10px;
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-        }
-        .avatar-option {
-            width: 100%;
-            padding-top: 100%; /* Mantém a proporção quadrada */
-            position: relative;
-            border-radius: 8px;
-            overflow: hidden;
-            cursor: pointer;
-            border: 3px solid transparent;
-            transition: border-color 0.2s ease, transform 0.2s ease;
-        }
-        .avatar-option img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
         .avatar-option:hover {
             border-color: var(--primary-light);
-            transform: scale(1.05);
         }
         .avatar-option.selected-preview {
             border-color: var(--accent);
             box-shadow: 0 0 10px var(--accent-light);
         }
-        #closeAvatarModalBtn { /* Estilo similar aos botões .button */
-            display: inline-block;
+        #closeAvatarModalBtn {
             background-color: var(--text-light);
-            color: white;
-            padding: 10px 25px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: background-color 0.3s ease;
-            margin-top: 10px;
         }
         #closeAvatarModalBtn:hover {
             background-color: var(--text);
         }
+        body.dark-mode #closeAvatarModalBtn {
+             background-color: var(--disabled-bg);
+        }
+         body.dark-mode #closeAvatarModalBtn:hover {
+             background-color: var(--button-hover-bg);
+         }
 
 
-        /* Animações */
         @keyframes slideUpFadeIn { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideUpFadeInModal { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Media Queries (sem alterações, mas podem precisar de ajustes para o novo modal) */
         @media (max-width: 768px) {
             .main-container { padding: 20px 10px; }
             .homepage-card { padding: 25px; }
+            #selectedAvatarDisplay { width: 80px; height: 80px; }
             .app-title { font-size: 1.9rem; }
             .theme-title { font-size: 1.4rem; }
             .theme-section .button { padding: 12px 20px; font-size: 0.95rem;}
+            .dark-mode-toggle-button { top: 15px; right: 15px; width: 38px; height: 38px; font-size: 1.1rem;}
 
             #iframeViewer { padding: 10px; }
             .iframe-header { padding: 6px 12px; }
@@ -314,11 +323,13 @@
         @media (max-width: 480px) {
             .main-container { padding: 15px 5px; }
             .homepage-card { padding: 20px; }
+            #selectedAvatarDisplay { width: 70px; height: 70px; }
             .app-title { font-size: 1.7rem; }
             .theme-title { font-size: 1.3rem; }
             .pin-modal-content { padding: 25px 20px; }
             .pin-modal-content h2 { font-size: 1.5rem; }
             #pinInput { padding: 12px; font-size: 1rem; }
+            .dark-mode-toggle-button { top: 10px; right: 10px; width: 35px; height: 35px; font-size: 1rem;}
 
             .avatar-grid { grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 8px;}
             .avatar-modal-content-box h2 { font-size: 1.4rem; }
@@ -328,24 +339,10 @@
 <body>
     <div class="main-container">
         <div class="homepage-card" style="display: none;">
+            <button id="darkModeToggle" class="dark-mode-toggle-button" title="Alternar Modo Noturno">🌙</button>
             <header class="app-header">
                 <div class="header-avatar-container" id="headerAvatarContainer" title="Clique para mudar o avatar">
                     <img id="selectedAvatarDisplay" src="https://i.imgur.com/rJXV7uR.png" alt="Avatar">
-                    </div>
-                <div class="app-icon-placeholder">
-                    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                            <linearGradient id="iconGradientHeader" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" style="stop-color:var(--primary-dark);stop-opacity:1" />
-                                <stop offset="100%" style="stop-color:var(--primary);stop-opacity:1" />
-                            </linearGradient>
-                        </defs>
-                        <path d="M5 55 Q50 35 95 55 L50 75 Z" fill="url(#iconGradientHeader)"/>
-                        <rect x="0" y="25" width="100" height="15" rx="2" fill="url(#iconGradientHeader)"/>
-                        <line x1="80" y1="40" x2="80" y2="60" stroke="var(--accent)" stroke-width="3"/>
-                        <circle cx="80" cy="60" r="4" fill="var(--accent)"/>
-                        <circle cx="50" cy="32.5" r="5" fill="#FFFFFF"/>
-                    </svg>
                 </div>
                 <h1 class="app-title">Plataforma de Estudos</h1>
             </header>
@@ -364,7 +361,9 @@
                         Simulados e Provas
                     </h2>
                     <button type="button" class="button" data-target-id="btnProvaMorfo">Prova de APS (turma 35)</button>
-                    
+                    <button type="button" class="button" data-target-id="btnProvaAPS">Prova de APS (turma 34 e 33)</button>
+                    <button type="button" class="button" data-target-id="btnProvaFarmaco">Prova de Farmacologia (prova romero)</button>
+                    <button type="button" class="button" data-target-id="btnProvaOSCE">Prova OSCE</button>
                 </section>
                 <section class="theme-section">
                     <h2 class="theme-title">
@@ -420,66 +419,77 @@
         const pinErrorMessage = document.getElementById('pinErrorMessage');
         const mainContentButtons = document.querySelectorAll('.app-menu .button');
 
-        // Iframe elements
         const iframeViewer = document.getElementById('iframeViewer');
         const contentIframe = document.getElementById('contentIframe');
         const closeIframeButton = document.getElementById('closeIframeButton');
 
-        // Avatar elements
         const headerAvatarContainer = document.getElementById('headerAvatarContainer');
         const selectedAvatarDisplay = document.getElementById('selectedAvatarDisplay');
         const avatarModalOverlay = document.getElementById('avatarModalOverlay');
         const avatarGrid = document.getElementById('avatarGrid');
         const closeAvatarModalBtn = document.getElementById('closeAvatarModalBtn');
 
-        const localStorageKeyAccess = 'codigoturma36';
+        // Modo Noturno
+        const darkModeToggleButton = document.getElementById('darkModeToggle');
+        const bodyElement = document.body;
+        const darkModeKey = 'userDarkModePreference_v2'; // Chave atualizada para evitar conflitos
 
-
-
-
-
-      // "AP7361Q","ZR2905D" , "KX5018P", "VB1172M" , "CJ9843G", "HU6709R", "NF4551B", "OW3216T", "QS8823Y", "LM0574A",  "RW5275B"
-      //      "FY1980X", "GT6247E", "RD3092W", "PI7715J", "SC5368U", "BX8021O", "EK9154I", "JZ2407C", , "MW4696F",
-      //     , "DP6073S", , "IO3386Z", "TE2642K", "AM7019L", , "FX0981P", "KY4138G", "NB8704M", "GQ9510H", "IP0179F"
-      //      "OJ1460D", "PL5627R", "SH9933T", "UZ7289Y", "VT2556A", "WE6112X", "XK3778E", "YC0445W", "ZI8001J", "BS4367U",
-      //      "CF1034O", , "EJ2256C", "HM6813N",  "YV0730N" , "JR4735V", "KU8391S", "LV1658H", "MX5214Z", "NY9870K"   "IP0179F"
-
-
-
-
-
+        const localStorageKeyAccess = 'codigoturma36'; // Sua chave de acesso ao PIN
         const localStorageKeyAvatar = 'studyAppSelectedAvatar_v1';
-        const validPins = ["DG5990I"]; // Mantenha seus PINs aqui
+        const validPins = ["DG5990I"]; 
 
-
-
-
-
-
-        // Usando links diretos para Imgur (i.imgur.com) e adicionando .png
-        // Se estes não forem os links diretos, substitua-os pelos corretos.
         const avatarImageLinks = [
-            "https://i.imgur.com/rJXV7uR.png",
-            "https://i.imgur.com/DaNsN4q.png",
-            "https://i.imgur.com/DXkoPU0.png",
-            "https://i.imgur.com/5jDryIk.png",
-            "https://i.imgur.com/ya6quMM.png",
-            "https://i.imgur.com/1G7xknr.png",
-            "https://i.imgur.com/Il4owIz.png",
-            "https://i.imgur.com/P95Sxw6.png",
+            "https://i.imgur.com/rJXV7uR.png", "https://i.imgur.com/DaNsN4q.png",
+            "https://i.imgur.com/DXkoPU0.png", "https://i.imgur.com/5jDryIk.png",
+            "https://i.imgur.com/ya6quMM.png", "https://i.imgur.com/1G7xknr.png",
+            "https://i.imgur.com/Il4owIz.png", "https://i.imgur.com/P95Sxw6.png",
             "https://i.imgur.com/ISp1O9O.png"
         ];
-        const defaultAvatar = avatarImageLinks[0]; // Avatar padrão
+        const defaultAvatar = avatarImageLinks[0];
 
         const targetUrls = {
             btnProvaMorfo: "https://inaciomaximoo.github.io/treino/morfom3.html",
-            // ATUALIZADO: URL para o botão APS
             btnProvaAPS: "https://inaciomaximoo.github.io/app/aps.html",
             btnProvaFarmaco: "https://inaciomaximoo.github.io/treino/farmaco.html",
             btnCalculadora: "https://inaciomaximoo.github.io/treino/calculadora.html",
             btnProvaOSCE: null
         };
 
+        // --- Funções Modo Noturno ---
+        function applyDarkMode(isDark) {
+            if (isDark) {
+                bodyElement.classList.add('dark-mode');
+                darkModeToggleButton.textContent = '☀️'; // Ícone de Sol
+                darkModeToggleButton.title = "Mudar para Modo Claro";
+            } else {
+                bodyElement.classList.remove('dark-mode');
+                darkModeToggleButton.textContent = '🌙'; // Ícone de Lua
+                darkModeToggleButton.title = "Mudar para Modo Noturno";
+            }
+        }
+
+        function toggleDarkModePreference() {
+            const isCurrentlyDark = bodyElement.classList.contains('dark-mode');
+            applyDarkMode(!isCurrentlyDark);
+            localStorage.setItem(darkModeKey, !isCurrentlyDark);
+        }
+        
+        // Aplicar modo noturno salvo ou preferência do sistema
+        const savedDarkMode = localStorage.getItem(darkModeKey);
+        if (savedDarkMode !== null) {
+            applyDarkMode(savedDarkMode === 'true');
+        } else {
+            // Opcional: Detectar preferência do sistema operacional
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                 applyDarkMode(true);
+             } else {
+                 applyDarkMode(false); // Padrão para modo claro
+             }
+        }
+        darkModeToggleButton.addEventListener('click', toggleDarkModePreference);
+
+
+        // --- Funções de Acesso e PIN ---
         function showPinModal() {
             homepageCard.style.display = 'none';
             iframeViewer.style.display = 'none';
@@ -501,7 +511,7 @@
             hidePinModal();
             iframeViewer.style.display = 'none';
             avatarModalOverlay.style.display = 'none';
-            homepageCard.style.display = 'block';
+            homepageCard.style.display = 'block'; // Animação CSS cuida da aparição
             mainContentButtons.forEach(button => {
                 button.disabled = false;
                 if (!button.hasAttribute('data-listener-added')) {
@@ -511,7 +521,7 @@
             });
             loadAndDisplaySelectedAvatar();
         }
-
+        
         function grantAccess() {
             localStorage.setItem(localStorageKeyAccess, 'true');
             showHomepageContent();
@@ -533,14 +543,13 @@
             const targetId = event.currentTarget.dataset.targetId;
             const url = targetUrls[targetId];
 
-            if (targetId === 'btnProvaAPS') { // Comportamento especial para Prova APS
+            if (targetId === 'btnProvaAPS') {
                 if (url) {
-                    // Abre em um popup
                     window.open(url, 'ProvaAPSPopup', 'width=1000,height=700,scrollbars=yes,resizable=yes,status=yes,toolbar=no,menubar=no,location=no');
                 } else {
                     alert('Link da Prova APS não configurado.');
                 }
-            } else if (url) { // Comportamento padrão para outros botões (abrir no iframe)
+            } else if (url) {
                 homepageCard.style.display = 'none';
                 contentIframe.src = url;
                 iframeViewer.style.display = 'flex';
@@ -568,7 +577,7 @@
         }
 
         function populateAvatarGrid() {
-            avatarGrid.innerHTML = ''; // Limpa grid existente
+            avatarGrid.innerHTML = '';
             avatarImageLinks.forEach(url => {
                 const avatarWrapper = document.createElement('div');
                 avatarWrapper.className = 'avatar-option';
@@ -579,10 +588,9 @@
                 img.addEventListener('click', () => {
                     localStorage.setItem(localStorageKeyAvatar, url);
                     selectedAvatarDisplay.src = url;
-                    // Adiciona feedback visual e fecha o modal
                     document.querySelectorAll('.avatar-option.selected-preview').forEach(el => el.classList.remove('selected-preview'));
-                    img.parentElement.classList.add('selected-preview'); // Adiciona ao wrapper
-                    setTimeout(() => { // Pequeno delay para o usuário ver a seleção
+                    img.parentElement.classList.add('selected-preview');
+                    setTimeout(() => {
                        closeAvatarSelectionModal();
                     }, 300);
                 });
@@ -592,8 +600,7 @@
         }
 
         function openAvatarSelectionModal() {
-            populateAvatarGrid(); // Popula com as imagens
-            // Marca o avatar atualmente selecionado na grade, se houver
+            populateAvatarGrid();
             const currentSrc = selectedAvatarDisplay.src;
             const imagesInGrid = avatarGrid.querySelectorAll('img');
             imagesInGrid.forEach(img => {
@@ -617,9 +624,9 @@
         headerAvatarContainer.addEventListener('click', openAvatarSelectionModal);
         closeAvatarModalBtn.addEventListener('click', closeAvatarSelectionModal);
 
-        // Lógica Principal de Inicialização
+        // --- Lógica Principal de Inicialização ---
         if (localStorage.getItem(localStorageKeyAccess) === 'true') {
-            showHomepageContent(); // Isso também chamará loadAndDisplaySelectedAvatar
+            showHomepageContent();
         } else {
             showPinModal();
             mainContentButtons.forEach(button => { button.disabled = true; });

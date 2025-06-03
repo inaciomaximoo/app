@@ -1,0 +1,3341 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Simulador de Provas Personalizado</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto+Mono&display=swap" rel="stylesheet">
+    
+    <audio id="correctSound" src="correct.mp3" preload="auto"></audio>
+    <audio id="wrongSound" src="wrong.mp3" preload="auto"></audio>
+
+    <style>
+        :root {
+            --bg-main: #f0f2f5;
+            --bg-card: #ffffff;
+            --text-primary: #333333;
+            --text-secondary: #555555;
+            --primary-color: #3a86ff;
+            --primary-light: #69a5ff;
+            --primary-dark: #005cbb;
+            --accent-color: #2ecc71;
+            --accent-light: #e6ffee;
+            --danger-color: #e74c3c;
+            --danger-light: #ffebee;
+            --warning-color: #FF9800; 
+            --warning-light: #FFF3E0;
+            --border-color: #d1d9e6;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --font-main: 'Poppins', sans-serif;
+            --font-mono: 'Roboto Mono', monospace;
+            --border-radius-main: 12px;
+            --transition-speed: 0.3s;
+            --purple-accent: #7c4dff; 
+        }
+
+        .dark-mode {
+            --bg-main: #1e1e2f;
+            --bg-card: #2a2a3a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #9e9e9e;
+            --primary-color: #7c4dff; 
+            --primary-light: #9d7bff;
+            --primary-dark: #5e35b1;
+            --accent-color: #00e676;
+            --accent-light: rgba(0, 230, 118, 0.1);
+            --danger-color: #ff5252;
+            --danger-light: rgba(255, 82, 82, 0.1);
+            --warning-color: #FFA726;
+            --warning-light: rgba(255, 167, 38, 0.15);
+            --border-color: #424242;
+            --shadow-color: rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+            padding: 20px 15px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+            background: var(--bg-card);
+            border-radius: var(--border-radius-main);
+            box-shadow: 0 8px 25px var(--shadow-color);
+            padding: 25px;
+            border: 1px solid var(--border-color);
+            transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center; 
+            margin-bottom: 25px;
+            gap: 15px;
+            width: 100%;
+        }
+        
+        #quizPage .header {
+            flex-direction: row; 
+            justify-content: space-between; 
+        }
+        #quizPage .header h1#quizTitle {
+            margin-bottom: 0; 
+            text-align: left; 
+            flex-grow: 1; 
+        }
+        #quizPage .header .dark-mode-toggle {
+            width: auto; 
+            margin-bottom: 0;
+        }
+
+        
+        #resultsPage .header {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #resultsPage .header h1 {
+            margin-bottom: 0; 
+        }
+        #resultsPage .header .dark-mode-toggle {
+            margin-bottom: 0; 
+            width: auto; 
+        }
+
+
+        h1, h2, h3, h4 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        h1 { font-size: 1.8rem; text-align: center; }
+        h2 { font-size: 1.5rem; }
+        h3 { font-size: 1.3rem; text-align: center; }
+        h4 { font-size: 1.1rem; color: var(--text-secondary); font-weight: 600; }
+
+        .dark-mode-toggle {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 25px;
+            padding: 8px 12px; 
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease, color var(--transition-speed) ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            box-shadow: 0 2px 5px var(--shadow-color);
+            overflow: hidden; 
+        }
+        
+        .dark-mode-toggle:hover {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            border-color: var(--primary-dark);
+        }
+        .dark-mode .dark-mode-toggle:hover {
+            color: #ffffff;
+        }
+
+        .icon-container {
+            position: relative;
+            width: 20px; 
+            height: 20px; 
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .moon-icon, .sun-icon {
+            position: absolute;
+            transition: opacity 0.3s ease-in-out, transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); 
+            font-size: 1rem; 
+            line-height: 1;
+        }
+        .sun-icon {
+            opacity: 0;
+            transform: translateY(100%) rotate(90deg) scale(0.5); 
+        }
+        .moon-icon {
+            opacity: 1;
+            transform: translateY(0) rotate(0deg) scale(1);
+        }
+        .dark-mode .sun-icon {
+            opacity: 1;
+            transform: translateY(0) rotate(0deg) scale(1);
+        }
+        .dark-mode .moon-icon {
+            opacity: 0;
+            transform: translateY(-100%) rotate(-90deg) scale(0.5); 
+        }
+        
+
+        .question-container {
+            background: var(--bg-card);
+            border-radius: var(--border-radius-main);
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            transition: border-color var(--transition-speed) ease, background-color var(--transition-speed) ease;
+        }
+
+        .question-container.correct {
+            border-left: 6px solid var(--accent-color);
+            background-color: var(--accent-light);
+        }
+        .dark-mode .question-container.correct {
+            background-color: rgba(0, 230, 118, 0.05);
+        }
+
+        .question-container.incorrect {
+            border-left: 6px solid var(--danger-color);
+            background-color: var(--danger-light);
+        }
+        .dark-mode .question-container.incorrect {
+            background-color: rgba(255, 82, 82, 0.05);
+        }
+
+        .question-number {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+            font-weight: 600;
+            display: flex; 
+            align-items: center; 
+        }
+        .mistake-stars-container { 
+            margin-left: 10px;
+            display: inline-flex;
+            align-items: center;
+        }
+        .mistake-stars { 
+            font-size: 0.9em; 
+            color: var(--purple-accent); 
+        }
+        .mistake-stars-label {
+            font-size: 0.8em;
+            color: var(--purple-accent);
+            font-weight: normal; 
+            margin-left: 4px;
+        }
+
+
+        .question-text {
+            margin-bottom: 20px;
+            white-space: pre-line;
+            font-family: var(--font-main);
+            line-height: 1.7;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .question-text .ascii-table {
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            background-color: var(--bg-main);
+            padding: 1em;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-top: 1em;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .question-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 15px 0;
+            display: block;
+            box-shadow: 0 4px 10px var(--shadow-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            display: flex;
+            align-items: flex-start;
+            padding: 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: transparent;
+            cursor: pointer;
+            transition: border-color var(--transition-speed) ease, background-color var(--transition-speed) ease, transform 0.2s ease;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .option:hover {
+            border-color: var(--primary-color);
+            background-color: var(--primary-light-translucent, rgba(58, 134, 255, 0.1));
+            transform: translateY(-2px);
+        }
+        .dark-mode .option:hover {
+            background-color: rgba(124, 77, 255, 0.15);
+        }
+
+        .option input[type="radio"] {
+            display: none;
+        }
+
+        .option-letter-styled {
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-right: 10px;
+            line-height: 1.5; 
+        }
+
+        .option-actual-text {
+            flex: 1;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .correct-answer, .explanation {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .correct-answer {
+            color: var(--accent-color);
+            font-weight: 600;
+            background-color: var(--accent-light);
+            border-left: 4px solid var(--accent-color);
+            display: none;
+        }
+
+        .explanation {
+            background-color: var(--bg-main);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            display: none;
+        }
+
+        .navigation {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .nav-button, .action-button, .feedback-continue, .popup-button, .danger-button { 
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: #ffffff;
+            cursor: pointer;
+            font-family: var(--font-main);
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all var(--transition-speed) ease;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 4px 10px var(--shadow-color);
+            display: inline-flex; 
+            align-items: center;
+            justify-content: center;
+        }
+        .dark-mode .nav-button, .dark-mode .action-button, .dark-mode .feedback-continue, .dark-mode .popup-button, .dark-mode .danger-button {
+            color: #ffffff;
+        }
+
+        .nav-button:hover, .action-button:hover, .feedback-continue:hover, .popup-button:hover, .danger-button:hover {
+            background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px var(--shadow-color);
+        }
+        .danger-button {
+            background: linear-gradient(135deg, var(--danger-color), #c0392b ); 
+        }
+        .danger-button:hover {
+            background: linear-gradient(135deg, var(--danger-light), var(--danger-color));
+        }
+        .danger-button .icon, .action-button .icon { 
+             margin-right: 8px;
+        }
+        
+        .expand-button { 
+            padding: 10px 18px;
+            border: 1px solid var(--purple-accent); 
+            border-radius: 8px;
+            background: var(--text-secondary);
+            color: var(--bg-card);
+            cursor: pointer;
+            font-family: var(--font-main);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all var(--transition-speed) ease;
+            width: auto; 
+            display: inline-flex;
+            align-items: center;
+            margin: 0 auto 15px auto;
+            box-shadow: 0 2px 5px var(--shadow-color);
+        }
+        .dark-mode .expand-button {
+            background: var(--text-secondary); 
+            color: var(--bg-card);
+            border: 1px solid var(--primary-light); 
+        }
+        .expand-button:hover {
+            background: var(--primary-color);
+            border-color: var(--primary-color); 
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+        .expand-button .icon {
+            margin-right: 8px;
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+        .expand-button.expanded .icon {
+            transform: rotate(180deg);
+        }
+
+        .nav-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: var(--border-color);
+            color: var(--text-secondary);
+            box-shadow: none;
+        }
+
+        .instant-feedback {
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            display: none;
+            font-size: 1rem;
+            border-left-width: 6px;
+            border-left-style: solid;
+        }
+
+        .instant-feedback.correct {
+            background-color: var(--accent-light);
+            color: var(--accent-color);
+            border-left-color: var(--accent-color);
+        }
+
+        .instant-feedback.incorrect {
+            background-color: var(--danger-light);
+            color: var(--danger-color);
+            border-left-color: var(--danger-color);
+        }
+        
+        /* Estilos para o Popup de Congratulações (já presentes no seu CSS original) */
+        .congrats-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.85); /* Fundo mais escuro para destaque */
+            display: flex;
+            flex-direction: column; /* Para alinhar o conteúdo verticalmente */
+            justify-content: center;
+            align-items: center;
+            z-index: 2000; /* Acima de outros popups */
+            padding: 15px; /* Espaçamento para telas menores */
+        }
+
+        .congrats-content {
+            background: var(--bg-card);
+            padding: 30px; /* Mais padding interno */
+            border-radius: var(--border-radius-main);
+            max-width: 90%; /* Responsividade */
+            width: 400px; /* Largura fixa para consistência */
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); /* Sombra mais pronunciada */
+            border: 1px solid var(--primary-color); /* Borda temática */
+        }
+
+        .congrats-message {
+            font-size: 1.4rem; /* Tamanho da fonte da mensagem */
+            margin-bottom: 20px;
+            color: var(--primary-color); /* Cor temática */
+            font-weight: bold;
+        }
+        .random-iframe {
+            margin: 20px 0; /* Espaçamento para o iframe */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .random-iframe iframe {
+            border-radius: 8px; /* Bordas arredondadas para o iframe */
+        }
+
+        .close-popup-button { /* Reutilizando a classe para o botão de fechar */
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: var(--primary-color);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color var(--transition-speed) ease;
+        }
+        .dark-mode .close-popup-button {
+            color: #ffffff; /* Garante contraste no modo escuro */
+        }
+        .close-popup-button:hover {
+            background: var(--primary-dark);
+        }
+
+
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0s 0.3s;
+            padding: 20px;
+        }
+        .popup-overlay.active {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.3s ease, visibility 0s 0s;
+        }
+        .popup-content {
+            background-color: var(--bg-card);
+            padding: 25px;
+            border-radius: var(--border-radius-main);
+            box-shadow: 0 10px 30px var(--shadow-color);
+            width: 95%;
+            max-width: 450px;
+            max-height: 90vh;
+            overflow-y: auto;
+            text-align: center;
+            position: relative;
+            border: 1px solid var(--border-color);
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        #questionDetailPopup .popup-content { 
+            max-width: 700px; 
+            text-align: left;
+        }
+        #questionDetailPopup .popup-close-button { 
+            position: absolute; 
+            top: 15px; 
+            right: 15px; 
+            background: transparent; 
+            color: var(--text-secondary); 
+            font-size: 1.75rem; 
+            border: none; 
+            padding: 5px;
+            line-height: 1;
+            cursor: pointer;
+        }
+        #questionDetailPopup .popup-close-button:hover {
+             color: var(--primary-color);
+             background: transparent; 
+        }
+
+
+        .popup-overlay.active .popup-content {
+            transform: scale(1);
+        }
+        .popup-close-button { /* Estilo geral para botões de fechar popup, se não for o do congrats */
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: var(--text-secondary);
+            color: var(--bg-card);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color var(--transition-speed) ease;
+            width: auto;
+            display: inline-block;
+        }
+        .dark-mode .popup-close-button {
+            background-color: var(--border-color);
+            color: var(--text-primary);
+        }
+        .popup-close-button:hover {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        #quizOptionsPopupTitle {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 1.4rem;
+        }
+        #quizOptionsPopupSubtitle {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        #quizOptionsPopupButtons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .feedback-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000; 
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0s 0.3s;
+            padding: 20px;
+        }
+        .feedback-popup.active {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.3s ease, visibility 0s 0s;
+        }
+        .feedback-content {
+            background-color: var(--bg-card);
+            padding: 30px;
+            border-radius: var(--border-radius-main);
+            box-shadow: 0 10px 30px var(--shadow-color);
+            width: 95%;
+            max-width: 500px;
+            max-height: 85vh;
+            overflow-y: auto;
+            text-align: center;
+            position: relative;
+            border: 1px solid var(--border-color);
+        }
+        .feedback-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.75rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 0;
+            line-height: 1;
+        }
+        .feedback-close:hover {
+            color: var(--primary-color);
+        }
+        .feedback-title {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .feedback-stats {
+            margin: 12px 0;
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+        .feedback-stats span {
+            font-weight: 600;
+        }
+        .feedback-correct {
+            color: var(--accent-color);
+        }
+        .feedback-incorrect {
+            color: var(--danger-color);
+        }
+        .feedback-percentage {
+            font-size: 1.1rem;
+            margin: 15px 0 25px 0;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        #feedbackPercentageValue { 
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 1.6rem;
+            margin-left: 8px;
+        }
+        #feedbackMistakesList {
+            margin-top: 20px;
+            max-height: 35vh;
+            overflow-y: auto;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+            text-align: left;
+        }
+        #feedbackMistakesList h4 {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .feedback-mistake-item {
+            margin-bottom: 12px;
+            padding: 12px;
+            background-color: var(--bg-main);
+            border-radius: 6px;
+            border-left: 4px solid var(--danger-color);
+            font-size: 0.9rem;
+        }
+        .dark-mode .feedback-mistake-item {
+            background-color: rgba(255,255,255,0.03);
+        }
+        .feedback-mistake-question {
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+        }
+        .feedback-mistake-option {
+            padding: 4px 0;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+        .feedback-mistake-option.feedback-mistake-correct {
+            color: var(--accent-color);
+            border-left: none;
+            background-color: transparent;
+        }
+        .feedback-mistake-option.feedback-mistake-selected {
+            color: var(--danger-color);
+            border-left: none;
+            background-color: transparent;
+        }
+        .feedback-continue {
+            margin-top: 30px;
+        }
+
+        .progress-container {
+            width: 100%;
+            background-color: var(--bg-main);
+            border-radius: 8px;
+            margin: 20px 0;
+            height: 12px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary-color);
+            border-radius: 0;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        #results-main-box {
+            background-color: var(--bg-card);
+            padding: 20px;
+            border-radius: var(--border-radius-main);
+            box-shadow: 0 6px 20px var(--shadow-color);
+            border-top: 5px solid transparent; 
+            margin-top: 25px; 
+            transition: border-color var(--transition-speed) ease;
+        }
+        .results-box-bad { border-top-color: var(--danger-color); }
+        .results-box-average { border-top-color: var(--warning-color); }
+        .results-box-good { border-top-color: var(--accent-color); }
+
+        .stat-card {
+            background: var(--bg-main); 
+            color: var(--text-primary);
+            border-radius: var(--border-radius-main);
+            padding: 20px;
+            box-shadow: 0 4px 10px var(--shadow-color);
+            border: 1px solid var(--border-color);
+            margin-bottom: 25px; 
+        }
+        .dark-mode .stat-card {
+            background: var(--bg-card); 
+        }
+        .dark-mode .stat-card h3, .dark-mode .stat-card h4 {
+            color: var(--primary-color); 
+        }
+        .stat-card h3, .stat-card h4 {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        #main-performance-card .chart-container {
+            height: 280px; 
+            max-height: 40vh; 
+            position: relative; 
+        }
+        .stat-card .chart-container { 
+            height: 200px; 
+            position: relative;
+        }
+        .chart-container canvas { 
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        .final-score-container {
+            text-align: center;
+            margin-bottom: 20px; 
+        }
+        .final-score-label {
+            display: block;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        .final-percentage { 
+            text-align: center;
+            margin-top: 10px; 
+            margin-bottom: 25px; 
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+        .final-percentage strong {
+            color: var(--text-primary); 
+            font-weight: 600;
+        }
+        .dark-mode .final-percentage strong {
+            color: var(--text-primary);
+        }
+
+        .final-score-value-box {
+            display: inline-block;
+            padding: 15px 30px;
+            border-radius: var(--border-radius-main);
+            font-size: 2.5rem;
+            font-weight: 700;
+            line-height: 1;
+            transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease, border-color var(--transition-speed) ease;
+            border: 2px solid transparent;
+            min-width: 150px;
+        }
+        .final-score-value-box.score-bad {
+            background-color: var(--danger-light);
+            color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+        .final-score-value-box.score-average {
+            background-color: var(--warning-light);
+            color: var(--warning-color);
+            border-color: var(--warning-color);
+        }
+        .final-score-value-box.score-good {
+            background-color: var(--accent-light);
+            color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        
+        .stats-grid {
+            display: grid;
+            gap: 20px;
+            grid-template-columns: 1fr; 
+        }
+         .stats-grid > .stat-card {
+            margin-bottom: 0; 
+        }
+        .additional-stats, .questions-review {
+            margin-top: 25px; 
+        }
+
+        .questions-review {
+            text-align: center;
+        }
+        .analysis-content-box {
+            background-color: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-main);
+            padding: 20px;
+            margin-top: 15px;
+            text-align: left;
+        }
+        .dark-mode .analysis-content-box {
+            background-color: rgba(0,0,0,0.1);
+        }
+        
+        .analysis-correct-answer {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: var(--accent-light);
+            border-radius: 6px;
+            border-left: 4px solid var(--accent-color);
+            color: var(--accent-color); 
+            font-size: 0.95rem;
+        }
+        .dark-mode .analysis-correct-answer {
+             background-color: rgba(0, 230, 118, 0.1);
+        }
+        .analysis-correct-answer strong {
+            color: var(--accent-color); 
+            font-weight: bold;
+        }
+
+
+        #resultsPage .actions {
+            display: flex;
+            flex-direction: column; 
+            align-items: center; 
+            gap: 15px;
+            margin-top: 30px; 
+            width: 100%;
+        }
+        #resultsPage .actions .action-button {
+            width: 100%; 
+            max-width: 300px; 
+            flex-grow: 0;
+        }
+
+        .reset-stats-container { 
+            text-align: center;
+            margin-top: 25px; 
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+         #resetStatsBtn.small-reset-button { 
+            font-size: 0.85rem;  
+            padding: 8px 15px;   
+            max-width: 280px;   
+        }
+        #resetStatsBtn { 
+            background: linear-gradient(135deg, var(--danger-color), #c0392b);
+        }
+        #resetStatsBtn:hover {
+             background: linear-gradient(135deg, var(--danger-light), var(--danger-color));
+        }
+         #resetStatsBtn .icon {
+            margin-right: 6px;
+        }
+        #resetStatsBtn:disabled {
+            background: var(--border-color);
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+
+        @media (min-width: 768px) {
+            .container { padding: 35px; }
+            #main-performance-card .chart-container { height: 350px; }
+            .stat-card .chart-container { height: 250px; } 
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .additional-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+            .additional-charts .stat-card { margin-bottom: 0; }
+            .final-score-value-box { padding: 20px 40px; font-size: 3rem; }
+            
+            #resultsPage .actions {
+                 flex-direction: row;
+                 justify-content: center; 
+            }
+             #resultsPage .actions .action-button {
+                 width: auto; 
+                 flex-basis: 220px; 
+                 max-width: 250px;
+            }
+             #resetStatsBtn.small-reset-button { 
+                 width: auto;
+                 flex-basis: auto; 
+                 max-width: 300px;
+            }
+        }
+        @media (max-width: 600px) {
+            #quizPage .header { flex-direction: column; align-items: center; }
+            #quizPage .header h1#quizTitle { text-align: center; margin-bottom: 15px; }
+            #quizPage .header .dark-mode-toggle { width: 100%; }
+        }
+        @media (max-width: 350px) {
+            body { font-size: 14px; padding: 10px; }
+            h1 { font-size: 1.3rem; }
+            .question-container, .question-result { padding: 12px; }
+            .option { padding: 10px; font-size: 0.95rem; }
+            .nav-button, .action-button, .feedback-continue, .expand-button, .popup-button { padding: 10px; font-size: 0.95rem; }
+            .final-score-value-box { font-size: 2rem; padding: 10px 20px;}
+            #main-performance-card .chart-container { height: 250px; }
+            .stat-card .chart-container { height: 180px; } 
+            #resetStatsBtn.small-reset-button { font-size: 0.8rem; padding: 8px 12px; }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="quizPage" style="display:none;"> 
+            <div class="header">
+                <h1 id="quizTitle">Simulador de Provas</h1> 
+                <button class="dark-mode-toggle" id="darkModeToggle">
+                    <span class="icon-container">
+                        <span class="moon-icon">🌙</span>
+                        <span class="sun-icon">☀️</span>
+                    </span>
+                    <span id="darkModeText">Modo Escuro</span>
+                </button>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div id="currentQuestion"></div>
+            <div class="instant-feedback" id="instantFeedback"></div>
+            <div class="navigation">
+                <button onclick="previousQuestion()" id="prevBtn" class="nav-button" disabled>Anterior</button>
+                <button onclick="nextQuestion()" id="nextBtn" class="nav-button">Próxima</button>
+                <button onclick="finishTest()" id="finishBtn" class="nav-button" style="display: none;">Finalizar Prova</button>
+            </div>
+        </div>
+
+        <div id="resultsPage" style="display: none;">
+            <div class="header"> 
+                <h1 id="resultsTitle">Resultados da Prova</h1>  
+                <button class="dark-mode-toggle" id="darkModeToggleResults">
+                     <span class="icon-container"> 
+                        <span class="moon-icon">🌙</span>
+                        <span class="sun-icon">☀️</span>
+                    </span>
+                    <span id="darkModeTextResults">Modo Escuro</span>
+                </button>
+            </div>
+
+            <div id="results-main-box"> 
+                <div class="results-header">
+                    <div class="final-score-container">
+                        <span class="final-score-label">Sua Nota Final:</span>
+                        <div id="finalScoreText" class="final-score-value-box"></div>
+                    </div>
+                    <div class="final-percentage" id="finalPercentageText"></div>
+                </div>
+
+                <div class="stat-card" id="main-performance-card">
+                    <h3>Desempenho Geral</h3>
+                    <div class="chart-container">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card" id="areasChartCard">
+                        <h3>Acertos por Área</h3>
+                        <div class="chart-container">
+                            <canvas id="areasChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Progresso nas Tentativas</h3>
+                        <div class="chart-container">
+                            <canvas id="progressChart"></canvas>
+                        </div>
+                    </div>
+                     <div class="stat-card">
+                        <h3>Questões com Erros</h3>
+                        <div class="chart-container">
+                            <canvas id="mistakesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="additional-stats stat-card"> 
+                    <h3>Estatísticas Adicionais</h3>
+                    <div class="additional-charts">
+                        <div class="stat-card">
+                            <h4 id="questionSizeChartTitle">Tamanho de Questão</h4>
+                            <div class="chart-container">
+                                <canvas id="questionSizeChart"></canvas> 
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Tempo por Questão (Simulado)</h4>
+                            <div class="chart-container">
+                                <canvas id="timePerQuestionChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="questions-review stat-card"> 
+                    <h3>Análise Detalhada por Questão</h3>
+                    <button class="expand-button" id="toggleAnalysisBtn">
+                        <span class="icon">&#x25BC;</span>Expandir Análise
+                    </button>
+                    <div class="analysis-content-box" id="analysisBox" style="display: none;">
+                        <div id="questionsAnalysis"></div>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button onclick="startNewAttempt(false)" class="action-button">Nova Tentativa</button> <button onclick="startNewAttempt(true)" class="action-button">Revisar Erros</button> </div>
+                <div class="reset-stats-container">
+                    <button id="resetStatsBtn" class="action-button danger-button small-reset-button" disabled>
+                        <span class="icon">🗑️</span> Resetar Progresso
+                    </button>
+                </div>
+            </div> 
+        </div>
+    </div>
+
+    <div class="feedback-popup" id="feedbackPopup">
+        <div class="feedback-content">
+            <button class="feedback-close" id="closeFeedback">×</button>
+            <h3 class="feedback-title">Seu desempenho no bloco</h3>
+            <div class="feedback-stats">
+                Você respondeu <span id="feedbackTotal">0</span> questões neste bloco.
+            </div>
+            <div class="feedback-stats">
+                <span class="feedback-correct">Acertos: <span id="feedbackCorrect">0</span></span> | 
+                <span class="feedback-incorrect">Erros: <span id="feedbackIncorrect">0</span></span>
+            </div>
+            <div class="feedback-percentage">
+                Taxa de acertos: <span id="feedbackPercentageValue">0</span>%
+            </div>
+            <div id="feedbackMistakesList"></div>
+            <button class="feedback-continue" id="continueButton">Continuar</button>
+        </div>
+    </div>
+
+    <div class="popup-overlay" id="quizStartOptionsPopup">
+        <div class="popup-content">
+            <h3 id="quizOptionsPopupTitle">Iniciar Simulado</h3>
+            <p id="quizOptionsPopupSubtitle"></p>
+            <div id="quizOptionsPopupButtons">
+            </div>
+            <button class="popup-close-button" onclick="closeQuizOptionsPopup()">Cancelar</button>
+        </div>
+    </div>
+    
+    <div class="popup-overlay" id="questionDetailPopup">
+        <div class="popup-content" style="max-width: 700px; text-align: left;">
+            <button class="popup-close-button" onclick="closeQuestionDetailPopup()" >×</button>
+            <div id="questionDetailContent">
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // ID Fixo para o simulado embutido
+        const EMBEDDED_QUIZ_ID = 'simulado_principal_embutido';
+        let currentFileId = EMBEDDED_QUIZ_ID; // Usar o ID fixo globalmente
+
+        // Chave para estatísticas no localStorage (mantida)
+        const LOCAL_STORAGE_STATS_PREFIX = 'quizApp_stats_';
+
+        // Questões embutidas diretamente no código
+        const embeddedQuestionsSource = [
+  {
+    "enunciado": "Qual foi o conceito desenvolvido por Cicely Saunders em relação à dor em pacientes com doença avançada e fatal?",
+    "imagem": null,
+    "alternativas": {
+      "a": "A dor constante precisa de controle constante.",
+      "b": "A dor deve ser separada da personalidade e do ambiente do paciente.",
+      "c": "A dor é apenas física e não se relaciona à qualidade de vida do paciente.",
+      "d": "A dor não requer controle constante, apenas tratamentos esporádicos"
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Qual foi o conceito desenvolvido por Cicely Saunders em relação à dor total, uma visão holística para a dor vivenciada pelo paciente?",
+    "imagem": null,
+    "alternativas": {
+      "a": "A dor está relacionada apenas à personalidade do paciente.",
+      "b": "A dor não pode ser controlada constantemente.",
+      "c": "A dor está diretamente ligada ao ambiente do paciente.",
+      "d": "A dor pode ser separada da personalidade e do ambiente do paciente."
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "A teoria científica mais importante e radicalmente mecânica da dor no início da idade moderna vem do filósofo francês René Descartes (1596-1650). Em seu conceito, o antigo pressuposto de que a dor era representada no coração foi abandonado e:",
+    "imagem": null,
+    "alternativas": {
+      "a": "O cérebro assumiu o lugar do coração.",
+      "b": "O sistema nervoso assumiu o lugar do coração.",
+      "c": "Os determinantes sociais tomaram o lugar do coração.",
+      "d": "O espírito assumiu o lugar do coração."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "O que a ciência ocidental começou a perceber a partir da definição de dor da Associação Internacional para o estudo da dor?",
+    "imagem": null,
+    "alternativas": {
+      "a": "A dor está sempre relacionada a um dano tecidual bem estabelecido.",
+      "b": "Os fatores somáticos são mais relevantes do que os psicológicos na experiência da dor.",
+      "c": "Os fatores psicológicos são mais relevantes do que os somáticos na experiência da dor.",
+      "d": "Os fatores somáticos e psicológicos estão interligados na experiência da dor."
+    },
+    "correta": "d"
+  },
+  {
+    "enunciado": "Análise as afirmativas a seguir, sobre a dor crônica, e marque a alternativa correta. I - O custo social da dor crônica musculoesquelética é evidente, possivelmente sobrepujando o de diabetes, cardiopatias e câncer. II - Na população com idades entre 15 e 64 anos, é o mais frequente problema de saúde e a principal causa de liberação trabalhista de longo prazo e aposentadoria precoce. III - Em idosos, a dor crônica é o segundo principal motivo de tratamento de longo prazo, atrás de hipertensão arterial, e a maior causa de incapacidade.",
+    "imagem": null,
+    "alternativas": {
+      "a": "Estão corretas as afirmativas I, II e III.",
+      "b": "Estão corretas somente as afirmativas I e II.",
+      "c": "Estão corretas somente as afirmativas I e III.",
+      "d": "Estão corretas somente as afirmativas II e III."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Estudos populacionais em adultos brasileiros indicam que 25% apresentam dor crônica diária. Qual é a diferença entre os componentes nociceptivo e nociplástico da dor crônica?",
+    "imagem": null,
+    "alternativas": {
+      "a": "O componente nociceptivo da dor crônica é uma resposta alterada do sistema nervoso central sem uma lesão tecidual identificável, enquanto o componente nociplástico é caracterizado por uma lesão tecidual ou inflamação persistente.",
+      "b": "O componente nociceptivo da dor crônica está relacionado a distúrbios psicológicos e emocionais, enquanto o componente nociplástico está associado a danos físicos diretos.",
+      "c": "O componente nociceptivo da dor crônica é caracterizado por uma lesão tecidual ou inflamação persistente, enquanto o componente nociplástico é uma resposta alterada do sistema nervoso central sem uma lesão tecidual identificável.",
+      "d": "O componente nociceptivo da dor crônica está associado a danos físicos diretos, enquanto o componente nociplástico está relacionado a distúrbios psicológicos e emocionais."
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "A dor neuropática é aquela cujo componente sensitivo decorre de:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Lesão ou doença do sistema nervoso somatosensitivo.",
+      "b": "Lesão ou doença no sistema esquelético.",
+      "c": "Lesão ou doença de origem física ou sensorial.",
+      "d": "Qualquer lesão que acometa o ser humano."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Analise as assertivas abaixo: I - A definição de dor crônica inclui o componente temporal: superior a três meses. II - A dor crônica pode estar associada a processos patológicos orgânicos crônicos que causam dor contínua ou recorrente. III - A lesão associada à dor crônica pode ultrapassar a capacidade do organismo em curá-la, ou o dano pode ocorrer de tal forma que impede o sistema nervoso de restabelecer seu estado normal. Estão corretas as assertivas:",
+    "imagem": null,
+    "alternativas": {
+      "a": "I, II e III",
+      "b": "I e II",
+      "c": "I e III",
+      "d": "II e III"
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Em relação à dor, de maneira geral, aguda ou crônica, analise as afirmações abaixo: I - A dor é uma experiência fundamental à sobrevivência humana e à funcionalidade apresentada quando circunstâncias externas ameaçam lesão, ou excedemos limites seguros. II - A dor mal controlada é uma das mais importantes fontes de sofrimento e limitação, prejudicando atividades profissionais, relacionais, de lazer e autocuidado. III - A dor mal controlada é uma das mais importantes fontes de sofrimento e limitação, embora possa ser manejada facilmente por meio de intervenções clínicas e terapêuticas.",
+    "imagem": null,
+    "alternativas": {
+      "a": "Estão corretas as afirmativas I e II.",
+      "b": "Estão corretas as afirmativas I, II e III.",
+      "c": "Estão corretas as afirmativas I e III.",
+      "d": "Estão corretas as afirmativas II e III."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Sobre o manejo da dor crônica na APS, relacione corretamente uma medida visando o problema e um atributo reforçado com ela:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Realizar abordagem das necessidades de saúde, a fim de excluir causas de dor nociceptivas e identificar processos que possam estar relacionados à dor neuropática, como os psicológicos – integralidade.",
+      "b": "Incentivar a vinculação do paciente com os profissionais/equipe/serviço de referência em APS ao longo do tempo, a fim de garantir sua confiança em relação ao tratamento – coordenação do cuidado.",
+      "c": "Solicitar contrarreferência das especialidades, indicar segunda opinião, quando necessário, e checar o entendimento do paciente sobre a abordagem do problema e as estratégias terapêuticas – longitudinalidade.",
+      "d": "Garantir o acesso aos especialistas focais de referência por meio de grupos de dor multiprofissionais que possam ampliar a abordagem terapêutica a fim de alcançar a resolução da dor – primeiro contato."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "A classificação da dor cujo componente sensitivo decorre da percepção do nocivo – a codificação de estímulos derivados de lesões iminentes ou já em andamento, é denominada:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Dor nociceptiva.",
+      "b": "Dor nociva.",
+      "c": "Dor nociplástica.",
+      "d": "Dor neuropática."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Na APS (Atenção Primária em Saúde), onde quadros inespecíficos e crônicos são a regra, a categorização das queixas dolorosas com base em doenças bem-definidas costuma ser pouco útil, além de levar à solicitação desnecessária e iatrogênica de exames, além de uma abordagem centrada no médico, e não no trabalho em equipe e no empoderamento do paciente. No entanto, considerando o manejo da dor crônica, é frequentemente mais útil e menos abstrata para a equipe:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Uma categorização que sugira hipóteses de trabalho a partir da história e do exame físico, incluindo possivelmente teses diagnóstico terapêuticos de pronta resposta.",
+      "b": "Uma categorização que sugira hipóteses de trabalho a partir da consulta médica e do exame físico, incluindo possivelmente teses diagnóstico terapêuticos de ponta.",
+      "c": "Uma categorização que sugira hipóteses de trabalho a partir da história clínica e do desenvolvimento do genograma e o ecomapa.",
+      "d": "Uma categorização que sugira hipóteses de trabalho a partir da sintomatologia verificada através do exame físico, incluindo possivelmente teses diagnóstico terapêuticos de ponta."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "De acordo com os autores citados no texto sobre terapêutica não medicamentos para dor crônica, qual é um dos benefícios sociais promovidos pela prática constante de exercícios físicos?",
+    "imagem": null,
+    "alternativas": {
+      "a": "Compartilhamento de experiências e empatia",
+      "b": "O isolamento social",
+      "c": "Aumento de massa muscular em membros inferiores",
+      "d": "Melhora da memória de curto prazo"
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "A terapêutica não medicamentos para dor crônica objetiva a redução do nível de dor dos pacientes com a abordagem multidisciplinar. Qual das seguintes afirmações reflete uma vantagem da terapia ocupacional no contexto da qualidade de vida?",
+    "imagem": null,
+    "alternativas": {
+      "a": "A terapia ocupacional contribui para a diminuição do sedentarismo e melhora na qualidade de vida.",
+      "b": "A terapia ocupacional promove a humanização no tratamento, mas não impacta na qualidade de vida.",
+      "c": "A terapia ocupacional é apenas uma forma de tratamento paliativo, sem benefícios a longo prazo.",
+      "d": "A terapia ocupacional não tem relação com a redução da dor ou melhoria na qualidade de vida."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Os critérios para um bom programa de rastreamento devem considerar:",
+    "imagem": null,
+    "alternativas": {
+      "a": "O período assintomático durante a qual a detecção é possível.",
+      "b": "A especificidade suficiente para minimizar os falsos negativos.",
+      "c": "A sensibilidade suficiente para detectar doenças no período sintomático.",
+      "d": "A inclusão de pessoas que estão fora dos critérios de risco."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "O rastreamento e a detecção precoce de doenças é tema relevante na prática da APS. Em relação ao rastreamento de agravos, assinale a afirmativa correta.",
+    "imagem": null,
+    "alternativas": {
+      "a": "O rastreamento pode promover iatrogenias, tais como exames diagnósticos em demasia aos quais o paciente será submetido até a confirmação da doença; pacientes erroneamente rastreados como positivos (falso-positivos); e o tratamento excessivo daqueles com anormalidades limítrofes.",
+      "b": "Considera-se não ser aceito nenhum grau de iatrogenia em decorrência da aplicação de um teste de rastreamento independente de a pessoa já se encontrar doente.",
+      "c": "Um motivo que torna o tema do rastreamento e da detecção precoce importante é o processo de medicalização social intenso que pode gerar intervenções diagnósticas e terapêuticas adequadas.",
+      "d": "Os testes de rastreamento negativos descartam a possibilidade de desenvolvimento de doenças."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "A avaliação dos programas de rastreamento é tecnicamente difícil, pois envolve uma série de fenômenos complexos. Um bom sistema de informação auxilia nesta avaliação, mas ainda há fatores que podem influenciar de maneira importante para se conseguir uma avaliação fidedigna. São eles:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Viés de seleção e viés de sobrediagnóstico.",
+      "b": "Viés de exposição e período de incubação curto da doença.",
+      "c": "Viés de publicação e período sintomático curto da doença.",
+      "d": "Pouco conhecimento sobre a história natural da doença e fase clínica curta da mesma."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Qual ação corresponde ao nível secundário de prevenção de doenças, segundo o modelo descrito por Leavell & Clark.",
+    "imagem": null,
+    "alternativas": {
+      "a": "Inquérito para detecção de casos na comunidade.",
+      "b": "Controle de vetores.",
+      "c": "Saneamento básico.",
+      "d": "Imunização."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Prevenção quaternária, de acordo com o dicionário da WONCA é a detecção de indivíduos em risco de intervenções diagnósticas e/ou terapêuticas, excessivas para protegê-los de novas intervenções médicas inapropriadas e sugerir-lhes alternativas eticamente aceitáveis. Assinale a alternativa em que houve a prevenção quaternária:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Solicitar exames conforme o protocolo de rastreamento.",
+      "b": "Solicitar exames de 'check-up' na rotina.",
+      "c": "Solicitar raio X de coluna na rotina para paciente com lombalgia.",
+      "d": "Solicitar exame de PSA na rotina para os homens."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Segundo Leavell e Clark, os níveis de prevenção podem ser exemplificados por:",
+    "imagem": null,
+    "alternativas": {
+      "a": "As medidas de rastreamento e diagnóstico precoce de doenças encontram-se na prevenção secundária.",
+      "b": "A prevenção terciária refere-se à identificação precoce das doenças com o objetivo de iniciar o tratamento o mais rápido possível.",
+      "c": "A aplicação de imunobiológicos está ligada a prevenção quaternária, que tem a finalidade de evitar danos.",
+      "d": "A reabilitação encontra-se na prevenção primária, uma vez que evita complicações e previne a ocorrência de outras doenças."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Silvano, 52 anos, casado, procura atendimento na Unidade Básica de Saúde da Família depois de visita domiciliar do agente comunitário de saúde, que o orientou a realizar consulta de rotina já que 'não ia ao médico há anos'. Está sem queixas e gostaria de realizar um check-up. Trabalha como açougueiro há 18 anos. Vai ao trabalho de bicicleta (40 minutos de percurso considerando a ida e volta). Pai hipertenso, IAM aos 63 anos e mãe com depressão. Exame físico normal. IMC = 24,5 kg/m². PA= 118 x 78 mmHg (2 medidas). Em relação ao caso acima e considerando as orientações de rastreamento na Atenção Primária, responda à questão. Sobre rastreamento na Atenção Primária é CORRETO afirmar que:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Não faz sentido a implantação de um serviço de rastreamento se o benefício da detecção e do tratamento precoce com o rastreamento for menor do que se a condição fosse tratada no momento habitual de diagnóstico.",
+      "b": "Toda vez que o paciente estiver preocupado e demandar uma intervenção de rastreamento (ex.: check-up), o profissional tem a responsabilidade de realizá-lo.",
+      "c": "Um programa de rastreamento deve ser aplicado à população de forma geral, independentemente se a pessoa concorda ou não em realizar o exame/procedimento, desde que se leve em consideração o acesso à população, a agilidade e as melhores evidências científicas.",
+      "d": "A solicitação do check-up pelo Silvano pode ser interpretada como a realização de diagnóstico precoce ou de rastreamento, já que ambas são ações destinadas a identificar a doença em estágio inicial a partir de sintomas e/ou sinais clínicos."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "“Primeiro de tudo, proteja o berço e o cercado com grades altas, com no máximo 6 cm entre elas, ok. Não deixe a Iori sozinha em cima de móveis; nem sob os cuidados de outra criança. Quando for fazer a higiene dela, nunca use talco. Veja sempre se o rostinho dela não está coberto, principalmente enquanto cuida dela. Se for andar de carro, a Iori tem que ser transportada no bebê conforto no banco de trás, voltada para o vidro traseiro, ok. \"No diálogo entre Physis e Aletheia, retirado do livro 'Saúde na Comunidade', as orientações de Physis são consideradas:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Medidas de Prevenção Primária.",
+      "b": "Medidas de Diagnóstico Precoce.",
+      "c": "Medidas de Prevenção Secundária.",
+      "d": "Medidas de Prevenção Terciária."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Qual característica do teste diagnóstico é a mais importante em um programa de rastreamento e por quê?",
+    "imagem": null,
+    "alternativas": {
+      "a": "Sensibilidade, uma vez que identificar verdadeiros negativos é o objetivo do programa.",
+      "b": "Sensibilidade, uma vez que a prevenção primária é o objetivo do programa.",
+      "c": "Especificidade, uma vez que identificar verdadeiros positivos é o objetivo do programa.",
+      "d": "Especificidade, uma vez que o diagnóstico precoce é o objetivo do programa."
+    },
+    "correta": "b"
+  },
+  {
+    "enunciado": "Ao examinar um paciente com histórico de perda de peso, febre, arrepios, fraqueza, mal-estar geral e dificuldade em respirar, o médico solicitou exame de escarro - porém o exame foi negativo. Solicitou posteriormente o exame de PPD - prova Tuberculínica, que teve resultado positivo. Quanto à situação clínica descrita, selecione a alternativa correta:",
+    "imagem": null,
+    "alternativas": {
+      "a": "A prova tuberculínica é um teste diagnóstico de baixa especificidade e alta sensibilidade. Para melhorar o valor preditivo do teste nessa situação clínica é importante considerar a prevalência de Tuberculose, como, por exemplo, investigar a existência de portadores de Tuberculose em domicílio.",
+      "b": "O teste de escarro tem baixa sensibilidade, por isso teve resultado negativo, enquanto a prova tuberculínica (PPT), tem alta especificidade, permitindo o diagnóstico de Tuberculose pulmonar com elevada acurácia.",
+      "c": "Tanto a prova tuberculínica quanto o teste de escarro podem ser considerados testes de elevada especificidade quando utilizados na investigação da tuberculose pulmonar, mas não na tuberculose extra-pulmonar (exemplo: tuberculose millar), independente da situação epidemiológica da comunidade em que o paciente está inserido.",
+      "d": "Para que o teste de escarro possa ser considerado um exame de elevada especificidade é fundamental que seja considerada a realidade epidemiológica em que está inserido - o teste de escarro, mesmo quando positivo, não é suficiente para o diagnóstico de tuberculose quando não existem contatos domiciliares com o mesmo diagnóstico."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Segundo Epictetus, filósofo do século II d.C., as aparências para a mente são de quatro tipos. As coisas: 1) são o que parecem ser; 2) não são nem parecem ser; 3) são e não parecem ser; e 4) não são, mas parecem ser. A assertiva, apesar de ser muito antiga, ainda é bastante atual e, a partir dela, é possível se fazer relação com os conhecimentos sobre epidemiológica. Assinale a alternativa que lista características de testes diagnósticos na mesma ordem dos 'tipos de coisas' aos quais se relacionam:",
+    "imagem": "https://i.imgur.com/CTS0az9.png",
+    "alternativas": {
+      "a": "Verdadeiro positivo, verdadeiro negativo, falso negativo e falso positivo.",
+      "b": "Verdadeiro negativo, verdadeiro positivo, falso positivo e falso negativo.",
+      "c": "Falso positivo, falso negativo, verdadeiro negativo e verdadeiro positivo.",
+      "d": "Falso negativo, verdadeiro negativo, falso positivo e verdadeiro negativo."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Existem algumas formas de avaliar um teste diagnóstico, os quais fornecem dados que se complementam na indicação e interpretação de um exame. Quando dizemos que o valor preditivo positivo de um exame é baixo, isso significa que:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Os resultados positivos desse exame aplicado em uma determinada população têm menor chance de corresponderem a verdadeiros positivos.",
+      "b": "Os resultados negativos desse exame aplicado em uma determinada população têm maior chance de corresponderem a verdadeiros negativos.",
+      "c": "O exame em questão têm uma baixa capacidade de identificar como positivos os indivíduos verdadeiramente positivos.",
+      "d": "Os resultados negativos do exame em questão são mais confiáveis que seus resultados positivos."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Kedny Silva, comediante brasileiro, certa vez disse durante um show: 'teste de gravidez de farmácia só funciona se der negativo. Se der positivo, você vai atrás do beta HCG, porque não acreditar'. O que essa piada sugere sobre o 'teste de farmácia'?",
+    "imagem": null,
+    "alternativas": {
+      "a": "Que tem baixo valor preditivo positivo.",
+      "b": "Que tem baixo valor preditivo negativo.",
+      "c": "Que tem alta especificidade.",
+      "d": "Que tem baixa sensibilidade."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Na visita à UBS Santo Eduardo, o enfermeiro mostrou enorme preocupação com o aumento do número de casos de sífilis neonatal. Os alunos propõem melhorar o rastreamento para sífilis no pré-natal. Qual das características abaixo é mais necessária ao teste a ser realizado?",
+    "imagem": null,
+    "alternativas": {
+      "a": "Alta Sensibilidade.",
+      "b": "Alta especificidade",
+      "c": "Baixa especificidade.",
+      "d": "Baixa sensibilidade."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Em relação as afirmações sobre os testes diagnósticos. Assinale a CORRETA",
+    "imagem": null,
+    "alternativas": {
+      "a": "Quanto mais sensível um teste, o resultado negativo confere mais segurança que um paciente não tenha a doença.",
+      "b": "Quanto mais específico um teste, melhor ele é para rastreamento.",
+      "c": "O teste denominado padrão-ouro sempre deve ser utilizado, pois é o mais fiel indicador da presença da doença, mesmo sendo dispendioso e invasivo.",
+      "d": "O teste específico é mais útil, quando o resultado é negativo."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "(Residência Médica – HCPM-2011) É desejável que um teste diagnóstico seja simultaneamente altamente sensível e altamente específico. Contudo, geralmente, isso não é possível, havendo um contrabalanço entre sensibilidade e especificidade. A Especificidade do teste deve ser priorizada sobre a sensibilidade quando o objetivo do teste é realizar:",
+    "imagem": null,
+    "alternativas": {
+      "a": "A confirmação diagnóstica de uma doença letal e incurável.",
+      "b": "O rastreamento de doadores de sangue.",
+      "c": "O diagnóstico de sífilis na gestante.",
+      "d": "A seleção de pacientes que serão submetidos a um segundo teste."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "O valor preditivo é caracterizado pelo resultado de um teste e é determinado pela:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Prevalência da doença: proporção de indivíduos em uma população definida que apresenta a doença em um determinado espaço de tempo.",
+      "b": "Sensibilidade: quanto mais sensível for o teste, maior será o valor preditivo positivo.",
+      "c": "Especificidade: quanto mais específico for o teste, maior será o valor preditivo negativo.",
+      "d": "Incidência da doença: tornando-se um elemento útil para diagnóstico."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Segundo Epictetus, filósofo do século II d.C., as aparências para a mente são de quatro tipos. As coisas: 1) são o que parecem ser; 2) não são nem parecem ser; 3) são e não parecem ser; e 4) não são, mas parecem ser. A assertiva, apesar de ser muito antiga, ainda é bastante atual e, a partir dela, é possível se fazer relação com os conhecimentos sobre epidemiológica.",
+    "imagem": null,
+    "alternativas": {
+      "a": "1-a, 2-d, 3-c, 4-b.",
+      "b": "1-a, 2-b, 3-c, 4-d.",
+      "c": "1-b, 2-a, 3-c, 4-b.",
+      "d": "1-d, 2-c, 3-a, 4-b."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "A capacidade de uma ferramenta de predição de risco em identificar aqueles indivíduos que irão desenvolver uma doença e que pode ser expressa em porcentagem de pessoas identificadas corretamente como destinadas a desenvolver a condição, é denominada:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Sensibilidade.",
+      "b": "Especificidade.",
+      "c": "Acurácia.",
+      "d": "Reproducibilidade."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Os fatores de risco são as características associadas ao maior risco de ficar doente. Pode-se dizer que:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Fatores de risco predizem uma doença, mas não quer dizer que causam a doença.",
+      "b": "Um determinado fator de risco pode contribuir para muitas doenças, mas uma doença tem apenas uma única causa.",
+      "c": "A maioria das doenças crônicas é causada por um fator de risco importante.",
+      "d": "Os fatores de risco que causam as doenças são denominados de marcadores."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "As causas distais de um risco para uma doença estão relacionadas principalmente a:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Fatores socioeconômicos.",
+      "b": "Fatores biológicos.",
+      "c": "Fatores comportamentais.",
+      "d": "Fatores genéticos."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Quando se diz que uma ferramenta de predição de risco é bem calibrada significa dizer que:",
+    "imagem": null,
+    "alternativas": {
+      "a": "A razão entre os indivíduos que se espera que desenvolverão a doença e os indivíduos que a desenvolveram é próxima de 1.",
+      "b": "A razão entre os indivíduos que se espera que desenvolverão a doença e os indivíduos que a desenvolveram é muito maior que 1.",
+      "c": "A razão entre os indivíduos que se espera que desenvolverão a doença e os indivíduos que a desenvolveram é muito menor que 1.",
+      "d": "A razão entre os indivíduos que se espera que desenvolverão a doença e os indivíduos que a desenvolveram é zero."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "A realização da estratificação de risco é essencial nos programas de rastreamento contribuindo para:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Selecionar subgrupos de pacientes com risco aumentado para determinada doença.",
+      "b": "Identificar as doenças mais prevalentes.",
+      "c": "Subsidiar o tratamento em tempo oportuno das doenças de evolução rápida.",
+      "d": "Discriminar quem terá ou não determinada doença."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Dentre as seguintes alternativas, qual é uma causa distal de risco para o desenvolvimento de câncer de pulmão?",
+    "imagem": null,
+    "alternativas": {
+      "a": "Histórico familiar de câncer de pulmão.",
+      "b": "Exposição crônica à fumaça do tabaco.",
+      "c": "Presença de mutações genéticas relacionadas ao câncer.",
+      "d": "Consumo excessivo de álcool."
+    },
+    "correta": "d"
+  },
+  {
+    "enunciado": "A identificação das causas que contribuem diretamente para a ocorrência das doenças é essencial para sua prevenção, controle e redução dos riscos. Diante da assertiva acima, assinale a alternativa correta:",
+    "imagem": null,
+    "alternativas": {
+      "a": "O baixo nível socioeconômico é uma causa distal para mortalidade infantil.",
+      "b": "A idade, sexo ou traço genético, resultam no funcionamento deficiente do organismo, caracterizando causas indiretas para ocorrência de doenças.",
+      "c": "As condições ambientais e de trabalho inadequadas, não interferem no surgimento de doença, mas agravam uma condição já existente.",
+      "d": "As causas imediatas para ocorrência de doenças estão ligadas aos aspectos sociais e econômicos da população."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Sobre os princípios básicos de risco, analise a alternativa correta:",
+    "imagem": null,
+    "alternativas": {
+      "a": "A baixa escolaridade materna é um fator de risco para lactentes com baixo peso ao nascer.",
+      "b": "A maioria das doenças crônicas é causada por um único fator de risco isolado.",
+      "c": "A estratificação de risco é realizada por meio de cadastramento de pessoas em grupos específicos nas unidades básicas.",
+      "d": "Uma pessoa que vivencia determinado fator de risco desenvolverá a doença associada, pois o fator de risco preditivo e determinante da doença."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "O que os estudos demonstraram sobre a dor em relação a grupos étnicos, na década de 1990, em texto disponível no Guia para o Tratamento da Dor em contexto de poucos recursos?",
+    "imagem": null,
+    "alternativas": {
+      "a": "A dor é uma experiência universal e não varia entre diferentes grupos.",
+      "b": "A intensidade e a percepção da dor são influenciadas por atitudes e crenças culturais",
+      "c": "Profissionais de saúde não devem considerar as crenças culturais dos pacientes.",
+      "d": "O reconhecimento das crenças culturais não tem impacto na eficácia do tratamento"
+    },
+    "correta": "b"
+  },
+  {
+    "enunciado": "Qual era a principal crença sobre a origem da dor na Europa Antiga, segundo o guia para o tratamento da dor em contexto de poucos recursos?",
+    "imagem": null,
+    "alternativas": {
+      "a": "A dor era considerada um castigo divino pelos deuses",
+      "b": "A dor era vista como um sinal de fraqueza e falta de coragem.",
+      "c": "A dor era atribuída a energias negativas presentes no corpo.",
+      "d": "A dor era considerada um fenômeno natural e inevitável do envelhecimento."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Identifique a alternativa que traz um correto conceito sobre a relação entre as crenças culturais e religiosas e a abordagem da dor pela equipe multiprofissional",
+    "imagem": null,
+    "alternativas": {
+      "a": "A dor é historicamente pouco importante para o exercício da religiosidade e para os ideais cristãos",
+      "b": "A fé e a humildade não influenciam na visão dos usuários dos serviços de saúde sobre a dor e o sofrimento",
+      "c": "As atitudes e crenças em grupos étnicos diferentes influenciam na variação de intensidade, duração e percepção subjetiva da dor",
+      "d": "A abordagem baseada apenas no conceito fisiológico contempla plenamente o significado religioso ou espiritual da dor."
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "Qual era a percepção da dor nos tempos antigos, conforme descrito no Guia de Tratamento da Dor em Contexto de poucos recursos?",
+    "imagem": null,
+    "alternativas": {
+      "a": "Nos tempos antigos, a dor era considerada uma experiência totalmente controlável pelos indivíduos.",
+      "b": "A dor era vista como uma parte inevitável da vida, influenciada por fatores sobrenaturais.",
+      "c": "A dor era tratada apenas com métodos cirúrgicos empíricos disponíveis na Antiguidade",
+      "d": "A dor era entendida como uma condição puramente psicológica pelos xamãs e curandeiros"
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "Além dos componentes motores e neurovegetativos da dor, há os componentes sensitivos. Qual é a diferença entre a dor nociceptiva e a dor neuropática?",
+    "imagem": null,
+    "alternativas": {
+      "a": "A dor nociceptiva é uma dor aguda e de curta duração, enquanto a dor neuropática é uma dor crônica e persistente.",
+      "b": "A dor nociceptiva é uma dor localizada, enquanto a dor neuropática é uma dor difusa e generalizada.",
+      "c": "A dor nociceptiva é causada por estímulos nocivos, como lesões teciduais, enquanto a dor neuropática é causada por danos ou disfunções no sistema nervoso.",
+      "d": "A dor nociceptiva é uma dor de natureza somática, enquanto a dor neuropática é uma dor de natureza visceral."
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "Em atividade na UBS, a equipe de alunos visitou uma paciente com dor crônica e fez a seguinte observação no relatório: 'ela gostava muito do acompanhamento que recebia da ACS e da equipe da UBS, não conseguia frequenta-la, porém, os profissionais de saúde (enfermeiro e médico) iam até ela para realizar consultas e até mesmo exames'. Quais atributos da APS ficam evidentes na observação dos estudantes sobre a relação da paciente com dor crônica visitada e a UBS?",
+    "imagem": null,
+    "alternativas": {
+      "a": "Acesso e Longitudinalidade.",
+      "b": "Equidade e Acesso.",
+      "c": "Universalidade e Longitudinalidade.",
+      "d": "Integralidade e Coordenação do Cuidado."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "A experiência da dor crônica apresenta componentes motores, neurovegetativos e psicossociais. Considerando esses componentes, assinale a alternativa correta",
+    "imagem": null,
+    "alternativas": {
+      "a": "Os componentes motores da dor crônica se relacionam com a resposta motora à dor, os componentes neurovegetativos estão relacionados com a resposta autonômica à dor e os componentes psicosociais se relacionam com a resposta cognitiva à dor.",
+      "b": "Os componentes motores da dor crônica são responsáveis pela manifestação física da dor, enquanto os componentes neurovegetativos são responsáveis pelas alterações autonômicas e os componentes psicosociais se relacionam com os aspectos emocionais e sociais da dor.",
+      "c": "Os componentes motores da dor crônica estão relacionados com a intensidade da dor, os componentes neurovegetativos estão relacionados com a duração da dor e os componentes psicosociais se relacionam com a percepção individual da dor.",
+      "d": "Os componentes motores da dor crônica se relacionam com a resposta motora à dor, os componentes neurovegetativos estão relacionados com a resposta autonômica à dor e os componentes psicosociais se relacionam com a resposta psicológica à dor."
+    },
+    "correta": "b"
+  },
+  {
+    "enunciado": "Selecione a alternativa correta a respeito da abordagem da dor crônica:",
+    "imagem": null,
+    "alternativas": {
+      "a": "A busca incessante por uma lesão que explique a dor pode gerar ansiedade e frustração no paciente.",
+      "b": "O fenômeno doloroso, de acordo com a neurociência moderna, é composto por nocicepção e recepção.",
+      "c": "A correlação entre dor e lesão tecidual é uma regra de acordo com a neurociência moderna.",
+      "d": "O método principal de avaliação da experiência da dor é a entrevista motivacional."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "\"Duas amigas conversam no trabalho. – Você não sabe: fazia uns três meses que eu vinha com dor de cabeça, pelo menos dois dias por semana ela doía, aí finalmente fui no médico. – E aí? – Ele fez umas perguntas, pediu uma tomografia, eu fiz, ele olhou e disse que eu não tinha nada. Me passou um remédio e eu tomei por cinco dias. – E aí? – Aí que eu queria que você me indicasse alguém, porque eu ainda estou com dor de cabeça...\". Assinale a alternativa correta sobre a situação descrita:",
+    "imagem": null,
+    "alternativas": {
+      "a": "O médico parece reconhecer apenas as dores crônicas associadas a lesão tecidual.",
+      "b": "A mulher não deveria procurar outro médico, mas ser reavaliada pelo profissional que lhe atendeu.",
+      "c": "A cefaleia em questão se trata de uma manifestação do sistema nervoso periférico demonstrável por imagem.",
+      "d": "O caso mostra como exames complementares são fundamentais para o diagnóstico da dor crônica, permitindo afastar causas graves."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Na população entre 15 e 64 anos de idade, a dor crônica musculoesquelética é o mais frequente problema de saúde. Assinale a alternativa correta sobre a importância da avaliação dos componentes físicos, psicológicos, sociais e espirituais na abordagem da dor crônica",
+    "imagem": null,
+    "alternativas": {
+      "a": "A avaliação dos componentes físicos, psicológicos, sociais e espirituais não é necessária na abordagem da dor crônica, pois a dor crônica é exclusivamente de origem física.",
+      "b": "A avaliação dos componentes físicos, psicológicos, sociais e espirituais é opcional na abordagem da dor crônica, pois apenas os aspectos físicos são relevantes para o tratamento.",
+      "c": "A avaliação dos componentes psicológicos e sociais é suficiente para entender a dor crônica, enquanto os fatores espirituais são irrelevantes",
+      "d": "Os componentes físicos, psicológicos, sociais e espirituais são fundamentais para compreender a dor crônica em sua totalidade e desenvolver um plano de tratamento multidisciplinar eficaz"
+    },
+    "correta": "d"
+  },
+  {
+    "enunciado": "No Brasil, a prevalência de dor crônica é de aproximadamente 30% entre os adultos. Quanto à dor crônica, selecione a alternativa correta:",
+    "imagem": null,
+    "alternativas": {
+      "a": "A dor crônica não está relacionada às más adaptações nociplásticas ou neurovegetativas",
+      "b": "Apresenta persistência além do tempo de restauração normal do tecido",
+      "c": "Pode ser, quanto à sua origem, classificada em primária, secundária ou terciária",
+      "d": "A dor crônica tem duração superior a oito meses, segundo as estratégias nacionais"
+    },
+    "correta": "b"
+  },
+  {
+    "enunciado": "A dor, como experiência humana, foi definida pela International Association for the Study of Pain (IASP) como:",
+    "imagem": null,
+    "alternativas": {
+      "a": "A experiência sensitiva e emocional desagradável associada ou semelhante àquela associada a uma lesão tecidual real ou potencial.",
+      "b": "A experiência física e biomédica desagradável associada ou semelhante àquela associada a uma lesão tecidual real ou potencial.",
+      "c": "A experiência sensitiva e emocional desagradável associada ou semelhante àquela associada a uma lesão imaginária.",
+      "d": "A experiência psicossocial e extrassensorial desagradável associada ou semelhante àquela associada a uma lesão tecidual real ou potencial"
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Qual das seguintes opções melhor descreve uma das vantagens da terapia ocupacional em relação à abordagem terapêutica da dor crônica?",
+    "imagem": null,
+    "alternativas": {
+      "a": "Promove uma maior amplitude de atividades, contribuindo para o prazer e a redução da dor crônica.",
+      "b": "Aumenta a necessidade de medicamentos para controle da dor.",
+      "c": "Foca exclusivamente na reabilitação física, ignorando os aspectos emocionais",
+      "d": "Resulta em um aumento do sedentarismo devido à falta de atividades direcionadas"
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Em algumas situações, a dor pode prolongar-se por seis meses ou mais e passar a ser classificada como dor crônica e não apenas um sintoma. Qual dos fatores a seguir pode dificultar a mensuração da dor e, consequentemente, contribuir para a cronificação da dor aguda?",
+    "imagem": null,
+    "alternativas": {
+      "a": "A falta de padronização na avaliação da dor",
+      "b": "A alta disponibilidade de métodos diagnósticos",
+      "c": "O uso de tecnologias avançadas em saúde",
+      "d": "A implementação de protocolos de manejo da dor"
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Durante o atendimento de pré-natal de baixo risco, a gestante recebe orientação alimentar, indicação de cessar o tabagismo, solicitação para realizar sorologia de sífilis e HIV e vacina para tétano. Segundo o modelo de Leavell & Clark, qual das alternativas abaixo traz a correspondência correta entre a medida adotada e seu nível de prevenção?",
+    "imagem": null,
+    "alternativas": {
+      "a": "Vacinação - primário.",
+      "b": "Orientação Familiar - secundário.",
+      "c": "Solicitação de sorologia - terciário.",
+      "d": "Cessação do tabagismo - secundário."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "“(...) é estritamente necessário, por questões éticas e técnicas, que os prossionais da saúde tenham segurança ao recomendar procedimentos de rastreamento oportunístico e/ou participar de programas organizados de rastreamento. Essa segurança só pode advir da chamada MBE (Medicina Baseada em Evidências). Todavia, como são múltiplas, excessivas e de qualidade heterogênea as fontes de evidência cientíca, é consenso, na medicina de família e comunidade, que instituições consideradas idôneas e reconhecidas pela comunidade médica, cientíca e de saúde pública sejam utilizadas como fonte de orientação para a indicação de rastreamentos” (Norman e Tesser, 2019 Assinale um exemplo de programa organizado de rastreamento com boa evidência científica:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Rastreamento de câncer de mama através de mamografia bianual em mulheres de 50 a 74 anos.",
+      "b": "Rastreamento de câncer de colo de útero através de Papanicolaou anual em mulheres em idade fértil.",
+      "c": "Rastreamento de câncer de próstata em homens a partir de 50 anos durante o Novembro Azul.",
+      "d": "Rastreamento de HIV e sífilis através de um mutirão de testes de testes rápidos no fim de semana."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Existem critérios para introdução de um programa de rastreamento, para que ele seja considerado de boa qualidade. Estes critérios dependem de certas características da doença, do teste utilizado no rastreio e da população rastreada. Selecione a alternativa que elenque uma característica de cada tipo:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Período assintomático durante o qual a detecção é possível, aceitabilidade pelas pessoas e cuidado médico acessível em caso de rastreio positivo.",
+      "b": "Baixo impacto na saúde pública, especificidade suficiente para minimizar os falsos-positivos e baixa prevalência da condição na população.",
+      "c": "Período sintomático de fácil percepção, baixa sensibilidade do teste e pouca disposição da população em realizar o mesmo.",
+      "d": "Melhores desfechos pelo tratamento durante o período assintomático, baixo valor preditivo positivo do teste e população pequena."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "(IFF - 2015) A atividade de rastreamento (screening) das doenças em uma população susceptível, refere-se a que tipo de prevenção?",
+    "imagem": null,
+    "alternativas": {
+      "a": "Secundária.",
+      "b": "Terciária.",
+      "c": "Primária.",
+      "d": "Quaternária."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "A defesa do rastreamento de câncer de próstata é afetada por um viés em especial. Assinale-o:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Viés de sobrediagnóstico.",
+      "b": "Viés de seleção.",
+      "c": "Viés de randomização.",
+      "d": "Viés do 'voluntário saudável'."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Ao selecionarmos um exame de rastreamento é importante que este tenha:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Alta sensibilidade, a fim de se ter uma baixa taxa de falsos negativos.",
+      "b": "Alta sensibilidade e alta especificidade, a fim de se ter alta taxa de falsos positivos e alta taxa de falsos negativos.",
+      "c": "Alta especificidade, a fim e se ter uma baixa taxa de falsos negativos.",
+      "d": "Alta sensibilidade e alta especificidade, a fim de se ter baixa taxa de verdadeiros negativos e baixa taxa de verdadeiros positivos."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Jonas, 45 anos de idade, reside em Embu das Artes, está há 1 ano em tratamento de diabetes mellitus tipo 2 e retorna hoje para atendimento programado com a médica de família na UBS. A doença está controlada, como mostram os exames mais recentes. Não há complicações, a consulta com oftalmologista revelou ausência de lesões oculares, a função renal está normal e a pressão arterial está dentro do normal. A atuação do médico de família pode ser considerada como:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Prevenção secundária",
+      "b": "Prevenção primária",
+      "c": "Promoção de saúde",
+      "d": "Prevenção terciária"
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Quando se diz que em Programas de Rastreamento é importante um teste diagnóstico ter alta sensibilidade isso significa que:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Este teste não pode deixar de detectar indivíduos que têm a doença.",
+      "b": "Este teste deve detectar os indivíduos que não têm a doença.",
+      "c": "Teste com resultado positivo confere a certeza de doença.",
+      "d": "Este teste tem um grande número de falsos negativos."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "A imunização do sarampo é uma medida que pode ser classificada em qual nível de prevenção?",
+    "imagem": null,
+    "alternativas": {
+      "a": "Prevenção Primária.",
+      "b": "Prevenção Secundária.",
+      "c": "Prevenção Terciária.",
+      "d": "Prevenção Quaternária."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "(Residência Médica – HCPM-2011) É desejável que um teste diagnóstico seja simultaneamente altamente sensível e altamente específico. Contudo, geralmente, isso não é possível, havendo um contrabalanço entre sensibilidade e especificidade. A Especificidade do teste deve ser priorizada sobre a sensibilidade quando o objetivo do teste é realizar:",
+    "imagem": null,
+    "alternativas": {
+      "a": "A confirmação diagnóstica de uma doença letal e incurável.",
+      "b": "O rastreamento de doadores de sangue.",
+      "c": "O diagnóstico de sífilis na gestante.",
+      "d": "A seleção de pacientes que serão submetidos a um segundo teste."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Em relação ao valor preditivo de um teste podemos afirmar que:",
+    "imagem": null,
+    "alternativas": {
+      "a": "É a probabilidade da presença ou ausência de doença após ter o resultado do teste.",
+      "b": "É uma propriedade do teste e independe da especificidade.",
+      "c": "O acaso não influencia na avaliação do valor preditivo.",
+      "d": "É uma propriedade do teste e não depende da sensibilidade."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Em relação aos teste diagnósticos, é correto afirmar que:",
+    "imagem": null,
+    "alternativas": {
+      "a": "O Valor Preditivo Positivo (VPP) é a chance de, frente a um exame com resultado positivo, a pessoa realmente ter a doença.",
+      "b": "O significado de verdadeiro positivo é obter um resultado positivo em um exame e a pessoa não ter a doença que se pretende diagnosticar.",
+      "c": "O significado de falso negativo é obter um resultado negativo em um exame e a pessoa não ter a doença que se pretende diagnosticar.",
+      "d": "O Valor Preditivo Negativo (VPN) é a chance de, frente a um exame com resultado negativo, a pessoa realmente ter a doença."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "A sensibilidade de um teste tem a seguinte definição:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Proporção de pessoas com a doença que tem teste positivo.",
+      "b": "Proporção de pessoas sem a doença que tem um teste positivo.",
+      "c": "Um teste especifico deixará passar pessoas que tenham a doença.",
+      "d": "Um teste sensível raramente classificará de forma errônea as pessoas com sendo portadoras de doenças quando elas não são."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Suponhamos que uma nova medicação seja muito efetiva em vítimas de acidente vascular encefálico isquêmico (AVEi), mas potencialmente fatal em pacientes sem esse diagnóstico. Qual das características de um teste confirmatório abaixo listadas é a mais importante para que o menor número de pessoas sem AVEi receba a medicação?",
+    "imagem": null,
+    "alternativas": {
+      "a": "Alta especificidade.",
+      "b": "Alta sensibilidade.",
+      "c": "Baixa sensibilidade.",
+      "d": "Baixa especificidade."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Selecione a alternativa correta:",
+    "imagem": null,
+    "alternativas": {
+      "a": "O valor preditivo positivo é a probabilidade de um paciente ter a doença com um resultado positivo (anormal) no teste.",
+      "b": "O valor preditivo negativo é a probabilidade de um paciente ter a doença quando o teste for negativo (anormal).",
+      "c": "O valor preditivo positivo é a probabilidade de um paciente não ter a doença quando o resultado for positivo (normal) no teste.",
+      "d": "O valor preditivo negativo é a probabilidade de um paciente ter a doença quando o resultado é positivo (normal) no teste."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "As radiograas de tórax e os exames de escarro são utilizados para determinar a causa da pneumonia, em vez da broncoscopia e biópsia pulmonar com exame histológico do pulmão afetado (...). Os testes mais simples são utilizados como substitutos para formas mais elaboradas, porém mais acuradas ou precisas, de estabelecer a presença da doença, com a compreensão de que há um certo risco de erro de classicação dos resultados\" (Fletcher, 2014). O texto diz respeito à acurácia de um teste diagnóstico padrão-ouro e sua relação com os testes comumente utilizados pelo médico no dia-a-dia \"Escolha a alternativa que explica corretamente esta relação:",
+    "imagem": null,
+    "alternativas": {
+      "a": "O padrão-ouro é o teste que traz o diagnóstico com mais certeza, mas nem sempre é possível utilizá-lo no dia-a-dia, então temos que levar em consideração esta aproximação com a realidade quando utilizamos testes comuns.",
+      "b": "O teste comum do dia-a-dia é perfeitamente utilizável na prática devido à sua capacidade de ter a mesma acurácia que os testes padrão-ouro, apenas sendo diferentes deles em relação aos custos de realização.",
+      "c": "O teste padrão-ouro, já que tem maior acurácia que os testes do dia-a-dia, deveria ser utilizado de maneira mais frequente, já que seus benefícios para o paciente são maiores que os riscos de sua realização.",
+      "d": "O teste comum do dia-a-dia não tem a mesma acurácia que o teste padrão-ouro e, por isso, deveria ser banido da prática clínica diária, tendo em vista as evidências científicas dos prejuízos causados às pessoas."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Você trabalha em uma UBS e atende uma pessoa com quadro clínico de esquistossomose. Para fazer o diagnóstico dessa doença, você solicita um exame de fezes chamado Kato-Katz, o qual é questionado pela paciente dada sua simplicidade. Você explica a ela que esse é o melhor exame para detecção dessa doença. Com base nesse caso, responda a alternativa correta:",
+    "imagem": null,
+    "alternativas": {
+      "a": "O exame seria o método padrão ouro para essa parasitose.",
+      "b": "O exame apesar de ter boa acurácia tem baixa sensibilidade.",
+      "c": "É um exame que se baseia apenas em alta especificidade.",
+      "d": "A acurácia diagnóstica desse exame não tem relevância para essa patologia."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Ao iniciar sua atividade em uma Unidade de Saúde da Família um médico recebe a informação que no território onde atua estão ocorrendo vários casos de Sífilis Neonatal. Ele decide reforçar com os profissionais de todas as equipes da unidade a utilização no pré-natal de um teste de diagnóstico para a sífilis. A principal característica deste teste diagnóstico deve ser:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Alta sensibilidade.",
+      "b": "Alta especificidade.",
+      "c": "Valor preditivo negativo elevado.",
+      "d": "Razão de probabilidade positiva baixa"
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "As causas distais de um risco para uma doença estão relacionadas principalmente a:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Fatores socioeconômicos.",
+      "b": "Fatores biológicos.",
+      "c": "Fatores comportamentais.",
+      "d": "Fatores genéticos."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Para reduzir as chances de transmissão do SARS-CoV-2 o distanciamento social é uma medida de grande importância visto que as aglomerações são um risco alto para disseminação. A partir de seu conhecimento sobre fatores de risco é correto afirmar que:",
+    "imagem": null,
+    "alternativas": {
+      "a": "As aglomerações no caso de infecção por SARS-CoV-2 são consideradas como causas imediatas da doença.",
+      "b": "A exposição a um fator de risco significa que uma pessoa, antes de ficar enferma, não manifestou o fator de risco em questão.",
+      "c": "As aglomerações no caso de infecção por SARS-Cov-2 são consideradas causas distais.",
+      "d": "A exposição a fatores de risco são geralmente pontuais."
+    },
+    "correta": "c"
+  },
+  {
+    "enunciado": "A identificação das causas que contribuem diretamente para a ocorrência das doenças é essencial para sua prevenção, controle e redução dos riscos. Diante da assertiva acima, assinale a alternativa correta:",
+    "imagem": null,
+    "alternativas": {
+      "a": "O baixo nível socioeconômico é uma causa distal para mortalidade infantil.",
+      "b": "A idade, sexo ou traço genético, resultam no funcionamento deficiente do organismo, caracterizando causas indiretas para ocorrência de doenças.",
+      "c": "As condições ambientais e de trabalho inadequadas, não interferem no surgimento de doença, mas agravam uma condição já existente.",
+      "d": "As causas imediatas para ocorrência de doenças estão ligadas aos aspectos sociais e econômicos da população."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Qual é o objetivo das ferramentas de predição de risco?",
+    "imagem": null,
+    "alternativas": {
+      "a": "Prever a ocorrência de um evento adverso em um indivíduo específico.",
+      "b": "Identificar fatores de risco para uma determinada doença.",
+      "c": "Estimar a magnitude de um determinado risco na população.",
+      "d": "Avaliar a eficácia de uma intervenção educativa."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Os fatores de risco são as características associadas ao maior risco de ficar doente. Pode-se dizer que:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Fatores de risco predizem uma doença, mas não quer dizer que causam a doença.",
+      "b": "Um determinado fator de risco pode contribuir para muitas doenças, mas uma doença tem apenas uma única causa.",
+      "c": "A maioria das doenças crônicas é causada por um fator de risco importante.",
+      "d": "Os fatores de risco que causam as doenças são denominados de marcadores."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Quais doenças apresentam longo período de latência entre a exposição a um fator de risco e os primeiros sintomas?",
+    "imagem": null,
+    "alternativas": {
+      "a": "Obesidade e osteoporose.",
+      "b": "Tuberculose e câncer de pulmão.",
+      "c": "Gripe causada pelo H1N1 e hanseníase.",
+      "d": "Doença causada pelo Covid-19 e diabetes mellitus."
+    },
+    "correta": "b"
+  },
+  {
+    "enunciado": "Uma cidade A tem 10.000 habitantes e 10 casos novos de câncer de pulmão por ano, enquanto outra B tem 50.000 habitantes e 40 casos novos da doença por ano. Em qual delas o risco de ter câncer de pulmão é maior?",
+    "imagem": null,
+    "alternativas": {
+      "a": "Na cidade A.",
+      "b": "Na cidade B.",
+      "c": "O risco em ambas as cidades é semelhante.",
+      "d": "Nada se pode afirmar sem conhecer os hábitos de cada população."
+    },
+    "correta": "a"
+  },
+  {
+    "enunciado": "Considerando os fatores de risco e a probabilidade de ocorrência de doenças, assinale a alternativa correta:",
+    "imagem": null,
+    "alternativas": {
+      "a": "Os fatores de risco em maior frequência estão relacionados com exposições prolongadas nas doenças crônicas.",
+      "b": "Os fatores de risco podem ser herdados em doenças infecciosas e drogadição.",
+      "c": "Os fatores de risco como agentes infecciosos não são considerados fatores proximais na maior parte das doenças.",
+      "d": "Os fatores de risco com latência longa em geral não produzem doenças."
+    },
+    "correta": "a"
+  }
+];
+
+        // --- FIM DAS MODIFICAÇÕES PRINCIPAIS ---
+
+        // Variáveis globais (algumas mantidas, outras adaptadas)
+        let allQuestions = []; 
+        let currentTestQuestions = [];
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let testStatistics = { 
+            correct: [],
+            incorrect: [],
+            attemptsHistory: [],
+            performanceByArea: {},
+            questionMistakes: {} 
+        };
+        let answeredQuestions = 0;
+        let answeredInBlock = 0;
+        let correctInBlock = 0;
+        let showFeedbackOnNext = false;
+        let currentAttempt = 0; 
+        let currentQuizIsReviewMode = false; 
+        let hasFinishedCurrentTestProcessing = false;
+        let charts = {
+            performance: null, progress: null, areas: null, mistakes: null,
+            questionSizeChart: null, timePerQuestion: null 
+        };
+
+        // Constantes de elementos do DOM
+        const quizPage = document.getElementById('quizPage');
+        const resultsPage = document.getElementById('resultsPage');
+        const currentQuestionDiv = document.getElementById('currentQuestion');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const finishBtn = document.getElementById('finishBtn');
+        // const jsonInput = document.getElementById('jsonInput'); // REMOVIDO
+        const finalScoreText = document.getElementById('finalScoreText');
+        const finalPercentageText = document.getElementById('finalPercentageText');
+        const questionsAnalysis = document.getElementById('questionsAnalysis');
+        const progressBar = document.getElementById('progressBar');
+        const instantFeedback = document.getElementById('instantFeedback');
+        
+        const feedbackPopup = document.getElementById('feedbackPopup');
+        const closeFeedback = document.getElementById('closeFeedback');
+        const continueButton = document.getElementById('continueButton');
+        const feedbackTotal = document.getElementById('feedbackTotal');
+        const feedbackCorrect = document.getElementById('feedbackCorrect');
+        const feedbackIncorrect = document.getElementById('feedbackIncorrect');
+        const feedbackPercentageValue = document.getElementById('feedbackPercentageValue');
+        const feedbackMistakesList = document.getElementById('feedbackMistakesList');
+        
+        const quizStartOptionsPopup = document.getElementById('quizStartOptionsPopup');
+        const quizOptionsPopupTitle = document.getElementById('quizOptionsPopupTitle');
+        const quizOptionsPopupSubtitle = document.getElementById('quizOptionsPopupSubtitle');
+        const quizOptionsPopupButtons = document.getElementById('quizOptionsPopupButtons');
+        
+        const questionDetailPopup = document.getElementById('questionDetailPopup');
+        const questionDetailContent = document.getElementById('questionDetailContent');
+
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const darkModeText = document.getElementById('darkModeText');
+        const darkModeToggleResults = document.getElementById('darkModeToggleResults');
+        const darkModeTextResults = document.getElementById('darkModeTextResults');
+        
+        const toggleAnalysisBtn = document.getElementById('toggleAnalysisBtn');
+        const analysisBox = document.getElementById('analysisBox');
+        const correctSound = document.getElementById('correctSound');
+        const wrongSound = document.getElementById('wrongSound');
+        // const jsonFileListElement = document.getElementById('jsonFileList'); // REMOVIDO
+        const quizTitleElement = document.getElementById('quizTitle'); 
+        const resultsTitleElement = document.getElementById('resultsTitle');
+        const resetStatsBtn = document.getElementById('resetStatsBtn');
+
+
+       const iframes = [
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/lista-mais-g-y-do-planeta-terra-2-0-1308/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/eu-quero-comer-voce-99397/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/rat-dance-music-93451/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/pou-estourado-48183/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/sua-mae-sabe-que-voce-gosta-de-rapazes-80078/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/toma-milk-shake-de-morango-59364/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/rojao-super-estourado-44057/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/me-da-minha-foia-19424/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/vai-tomar-no-c-pir4nh444-34654/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/lula-e-neymar-47-40647/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/e-agora-vai-entra-o-grosso-75362/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/caramba-que-p1nto-enorme-42382/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/o-homem-uma-maquina-uma-besta-enjaulada-66045/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/manda-foto-pivete-4508/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/som-do-zap-zap-estourado-15594/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/lula-empurra-mole-59742/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/foi-quando-gyro-finalmente-entendeu-41342/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/uicideboy-intro-gmi2-36329/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/abc-da-amazonia-61531/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/corinthians-radio-globo/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/cruzeiro-radio-globo/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/eae-mane-cade-o-pix-mwahahaha-8598/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/posso-te-ligar-agora-ou-tua-mulher-54107/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/para-de-mandar-audio-to-na-ucrania-47141/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/ponte-preta-radio-globo-91750/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/coritiba-radio-globo/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/dolly-estourado-50496/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/imbroxavel-44092/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/lula-ze-gotinha-26753/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/hino-da-urss-53471/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/lobo-pidao-50489/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/voce-vem-almocar-23752/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/vinheta-ifood/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/spongebob-fail-11236/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/botao-do-whatsapp-97196/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/1-2-3-4-flamengo-18569/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/ai-chavinho-25347/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/tralalero-funk-20181/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/indian-song-7sek-58379/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/hello-moto-estourado-73372/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/plantao-globo/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/aw-shit-here-go-again-cj-from-gta-sa-97151/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/cala-a-boca-e-escuta-o-som-da-minha-kombi-ai-2767/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/qui-fase-que-ta-o-curintia-43357/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/musica-triste-meme-41946/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/pare/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/me-ferrei-amigos-estevao-31478/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/ele-ta-pedindo-pra-ser-empurrado-4066/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/papu-papu-papu-58837/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/biometria-13888/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/brasil-radio-globo/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/agostinho-carrara-autonomo-28476/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/freddie/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/bem-te-vi-passaro-58874/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/grito-do-tom-35478/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/what-bottom-text-meme-sanctuary-guardian-s-24591/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/acorda-monark-17462/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/me-mata-de-uma-vez-trio-parada-dura-572/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/me-mata-de-uma-vez-31687/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/aumenta-o-som-marcelo-dig-dig-dig-74686/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/vinheta-jornal-nacional/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/cr7-bom-dia-34785/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/bad-to-the-bone-meme-22189/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/ai-programa-hora-do-faro-melhor-qualidade-5308/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/donald-trump-build-a-wall/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/quien-estaba-hablando-contigo-73597/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/bom-dia-sao-10h-silvio-santos/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/comercial-de-xampu-de-mulher/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/avocados-fron-mexico-5538/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/comercial-globo-1-621/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/comercial-globo-2-83971/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/e-o-pintinho-piu-26037/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/bilu-o-et-brasileiro/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/som-motor-f1-51289/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/buzina-de-caminhao-byrm-17163/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/caminhao-de-gas/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/re-caminhao-67082/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/o-moco-o-caminhao-tombou-35530/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/toque-do-motorola-28486/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/encara-messi-23845/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/cr7-vou-ao-u-ao-messi-36080/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/linkin-park-in-the-end-versao-forro-brazil-79061/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/vx-without-me-forro-estourado-27992/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/minha-pomba-forro-21153/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/champions-league-forro-42023/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/tu-conhece-a-paola-63959/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/lula-feijao-puro-34490/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/chora-viola/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/sinonimos-chitaozinho-xororo-brasil-27832/embed/" frameborder="0" scrolling="no"></iframe>',
+    '<iframe width="110" height="200" src="https://www.myinstants.com/instant/eu-to-maluco-to-doente-to-doidao-14644/embed/" frameborder="0" scrolling="no"></iframe>'
+];
+
+        // FUNÇÕES REMOVIDAS: sanitizeFileName, getFileList, saveFileList, renderFileList, deleteFile (relacionadas a múltiplos arquivos)
+
+        /**
+         * Salva apenas as estatísticas do simulado embutido no localStorage.
+         * @param {object} statsObject - O objeto de estatísticas a ser salvo.
+         */
+        function saveStats(statsObject) {
+            localStorage.setItem(LOCAL_STORAGE_STATS_PREFIX + EMBEDDED_QUIZ_ID, JSON.stringify(statsObject));
+        }
+
+        /**
+         * Carrega o simulado embutido (questões e estatísticas) e prepara para iniciar.
+         */
+        function loadEmbeddedQuizAndShowOptions() {
+            const displayName = "Simulado Principal"; // Nome fixo para o simulado embutido
+            const statsString = localStorage.getItem(LOCAL_STORAGE_STATS_PREFIX + EMBEDDED_QUIZ_ID);
+
+            // Processa as questões embutidas para garantir IDs únicos
+            allQuestions = embeddedQuestionsSource.map((q, index) => ({
+                ...q,
+                id: q.id || `${EMBEDDED_QUIZ_ID}-q-${index}` // Garante um ID para cada questão
+            }));
+
+            if (allQuestions.length === 0) {
+                currentQuestionDiv.innerHTML = "<p>Erro: Nenhuma questão embutida configurada.</p>";
+                alert('Erro: Nenhuma questão embutida encontrada ou formato inválido.');
+                resetStatsBtn.disabled = true;
+                return;
+            }
+
+            quizTitleElement.textContent = `Simulado: ${displayName}`;
+            resultsTitleElement.textContent = `Resultados: ${displayName}`;
+
+            if (statsString) {
+                testStatistics = JSON.parse(statsString);
+                testStatistics.questionMistakes = testStatistics.questionMistakes || {};
+                allQuestions.forEach(q => { // Garante que todas as questões atuais tenham uma entrada em questionMistakes
+                    if (testStatistics.questionMistakes[q.id] === undefined) {
+                        testStatistics.questionMistakes[q.id] = 0;
+                    }
+                });
+                currentAttempt = testStatistics.attemptCount || 0;
+            } else { // Se não há estatísticas salvas, inicializa
+                testStatistics = { 
+                    correct: [], 
+                    incorrect: [], 
+                    attemptsHistory: [], 
+                    performanceByArea: {}, 
+                    questionMistakes: {}, 
+                    attemptCount: 0 
+                };
+                allQuestions.forEach(q => { testStatistics.questionMistakes[q.id] = 0; });
+                currentAttempt = 0;
+            }
+            
+            resultsPage.style.display = 'none'; 
+            quizPage.style.display = 'none'; 
+            showQuizStartOptionsPopup(displayName);
+            resetStatsBtn.disabled = !statsString; // Habilita se houver estatísticas salvas
+        }
+        
+        /**
+         * Exibe o popup com opções para iniciar o simulado.
+         * @param {string} displayName - O nome de exibição do simulado.
+         */
+        function showQuizStartOptionsPopup(displayName) {
+            quizOptionsPopupSubtitle.textContent = `Simulado: ${displayName}`;
+            quizOptionsPopupButtons.innerHTML = ''; 
+
+            const normalTestButton = document.createElement('button');
+            normalTestButton.textContent = 'Prova Normal (40Q)'; // Ou o número de questões embutidas se for menor
+            normalTestButton.className = 'popup-button'; 
+            normalTestButton.onclick = () => {
+                initializeTest(false, Math.min(40, allQuestions.length)); // Ajusta o número de questões se necessário
+                closeQuizOptionsPopup();
+            };
+            quizOptionsPopupButtons.appendChild(normalTestButton);
+
+            const distinctMistakesCount = Object.values(testStatistics.questionMistakes || {}).filter(count => count > 0).length;
+            
+            // Mostra opção de revisar erros apenas se houver erros registrados
+            if (distinctMistakesCount > 0) { 
+                const reviewMistakesButton = document.createElement('button');
+                const reviewQuizLength = Math.min(10, distinctMistakesCount); 
+                reviewMistakesButton.textContent = `Revisar Erros (${reviewQuizLength}Q)`;
+                reviewMistakesButton.className = 'popup-button';
+                reviewMistakesButton.onclick = () => {
+                    initializeTest(true, 10); 
+                    closeQuizOptionsPopup();
+                };
+                quizOptionsPopupButtons.appendChild(reviewMistakesButton);
+            }
+            
+            quizStartOptionsPopup.classList.add('active');
+        }
+
+        function closeQuizOptionsPopup() {
+            quizStartOptionsPopup.classList.remove('active');
+        }
+        
+        resetStatsBtn.addEventListener('click', () => {
+            const currentFileNameForAlert = "Simulado Principal";
+
+            if (confirm(`Tem a certeza que quer resetar todas as estatísticas (histórico de tentativas, erros, etc.) do "${currentFileNameForAlert}"? As questões em si NÃO serão apagadas.`)) {
+                testStatistics = { 
+                    correct: [],
+                    incorrect: [],
+                    attemptsHistory: [],
+                    performanceByArea: {},
+                    questionMistakes: {}, 
+                    attemptCount: 0 
+                };
+                // Re-inicializa a contagem de erros para todas as questões embutidas
+                allQuestions.forEach(q => { 
+                    testStatistics.questionMistakes[q.id] = 0;
+                });
+
+                saveStats(testStatistics); // Salva as estatísticas resetadas
+                
+                alert("Estatísticas resetadas com sucesso!");
+                
+                if(resultsPage.style.display === 'block'){
+                    resultsPage.style.display = 'none';
+                }
+                if(quizPage.style.display === 'block'){
+                     quizPage.style.display = 'none';
+                }
+                currentQuestionDiv.innerHTML = ""; // Limpa a área de questão
+                
+                // Recarrega as opções de início, já que as estatísticas foram alteradas
+                loadEmbeddedQuizAndShowOptions();
+            }
+        });
+
+
+        function playSound(soundElement) {
+            if (soundElement) {
+                soundElement.currentTime = 0;
+                soundElement.play().catch(e => console.error("Erro ao tocar som:", e));
+            }
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkModeGlobalSetting', isDark ? 'enabled' : 'disabled'); 
+            const text = isDark ? 'Modo Claro' : 'Modo Escuro';
+            darkModeText.textContent = text;
+            darkModeTextResults.textContent = text;
+            if (resultsPage.style.display === 'block' && currentFileId) updateCharts(); 
+        }
+
+        if (localStorage.getItem('darkModeGlobalSetting') === 'enabled') {
+            document.body.classList.add('dark-mode');
+            darkModeText.textContent = 'Modo Claro';
+            darkModeTextResults.textContent = 'Modo Claro';
+        } else {
+             darkModeText.textContent = 'Modo Escuro';
+            darkModeTextResults.textContent = 'Modo Escuro';
+        }
+
+        darkModeToggle.addEventListener('click', toggleDarkMode);
+        darkModeToggleResults.addEventListener('click', toggleDarkMode);
+        closeFeedback.addEventListener('click', () => feedbackPopup.classList.remove('active'));
+        
+        toggleAnalysisBtn.addEventListener('click', () => {
+            const isHidden = analysisBox.style.display === 'none' || analysisBox.style.display === '';
+            analysisBox.style.display = isHidden ? 'block' : 'none';
+            if (isHidden) {
+                toggleAnalysisBtn.innerHTML = '<span class="icon">&#x25B2;</span>Recolher Análise';
+                toggleAnalysisBtn.classList.add('expanded');
+            } else {
+                toggleAnalysisBtn.innerHTML = '<span class="icon">&#x25BC;</span>Expandir Análise';
+                toggleAnalysisBtn.classList.remove('expanded');
+            }
+        });
+        
+        continueButton.addEventListener('click', () => {
+            feedbackPopup.classList.remove('active');
+            if (currentQuestionIndex < currentTestQuestions.length - 1) { 
+                currentQuestionIndex++;
+                displayCurrentQuestion(); 
+            } else { // Se era o feedback do último bloco da última questão
+                actuallyFinishTest();
+            }
+        });
+
+        // REMOVIDO: jsonInput.addEventListener('change', ...)
+
+        function initializeTest(isMistakesQuiz = false, numQuestions = 40) {
+            instantFeedback.style.display = 'none'; 
+            instantFeedback.textContent = '';
+            currentQuizIsReviewMode = isMistakesQuiz; 
+            hasFinishedCurrentTestProcessing = false; 
+
+            // A verificação de currentFileId não é mais crítica aqui, pois é fixo.
+            // allQuestions é preenchido por loadEmbeddedQuizAndShowOptions
+            if (allQuestions.length === 0) {
+                currentQuestionDiv.innerHTML = "<p>Nenhuma questão carregada. Verifique a configuração das questões embutidas.</p>";
+                quizPage.style.display = 'block'; 
+                return;
+            }
+            userAnswers = {}; 
+            currentQuestionIndex = 0;
+            answeredQuestions = 0;
+            answeredInBlock = 0;
+            correctInBlock = 0;
+            showFeedbackOnNext = false;
+            testStatistics.correct = []; 
+            testStatistics.incorrect = []; 
+            testStatistics.performanceByArea = {}; 
+            
+            // Incrementa o contador de tentativas apenas para provas normais
+            if (!isMistakesQuiz) {
+                testStatistics.attemptCount = (testStatistics.attemptCount || 0) + 1;
+                currentAttempt = testStatistics.attemptCount; 
+                saveStats(testStatistics); // Salva o contador de tentativas atualizado
+            }
+
+
+            if (isMistakesQuiz) {
+                currentTestQuestions = getMostMistakenQuestions(allQuestions, numQuestions); 
+                if (currentTestQuestions.length === 0 ) {
+                    alert("Não há questões erradas para revisar ou elas já foram vistas. Iniciando prova normal.");
+                    currentTestQuestions = getRandomQuestions(allQuestions, Math.min(40, allQuestions.length)); 
+                    numQuestions = currentTestQuestions.length; // Ajusta numQuestions para o tamanho real
+                    currentQuizIsReviewMode = false; 
+                } else if (currentTestQuestions.length < numQuestions) {
+                    numQuestions = currentTestQuestions.length;
+                }
+            } else { 
+                // Lógica para alternar para revisão de erros a cada X tentativas (ex: 6)
+                if (testStatistics.attemptCount > 0 && testStatistics.attemptCount % 6 === 0) { 
+                    const mistakenForReview = getMostMistakenQuestions(allQuestions, numQuestions);
+                    if (mistakenForReview.length > 0) {
+                        currentTestQuestions = mistakenForReview;
+                        currentQuizIsReviewMode = true; 
+                         if (currentTestQuestions.length < numQuestions) numQuestions = currentTestQuestions.length;
+                        alert("Esta é uma rodada de revisão das questões mais erradas!");
+                    } else { // Se não há erros para revisar, faz uma prova normal
+                        currentTestQuestions = getRandomQuestions(allQuestions, Math.min(numQuestions, allQuestions.length));
+                        currentQuizIsReviewMode = false;
+                         if (currentTestQuestions.length < numQuestions) numQuestions = currentTestQuestions.length;
+                    }
+                } else { // Prova normal padrão
+                    currentTestQuestions = getRandomQuestions(allQuestions, Math.min(numQuestions, allQuestions.length));
+                    currentQuizIsReviewMode = false;
+                     if (currentTestQuestions.length < numQuestions) numQuestions = currentTestQuestions.length;
+                }
+            }
+            
+            // Garante que não tentaremos exibir mais questões do que temos
+            if (currentTestQuestions.length > numQuestions) {
+                 currentTestQuestions = currentTestQuestions.slice(0, numQuestions);
+            } else {
+                numQuestions = currentTestQuestions.length; // Ajusta numQuestions para o número real de questões selecionadas
+            }
+
+            if (currentTestQuestions.length === 0 && allQuestions.length > 0) { // Fallback se a seleção de erros não retornar nada
+                currentTestQuestions = getRandomQuestions(allQuestions, Math.min(numQuestions, allQuestions.length));
+                currentQuizIsReviewMode = false; 
+            }
+
+
+            quizPage.style.display = 'block'; 
+            resultsPage.style.display = 'none';
+            analysisBox.style.display = 'none'; 
+            toggleAnalysisBtn.innerHTML = '<span class="icon">&#x25BC;</span>Expandir Análise';
+            toggleAnalysisBtn.classList.remove('expanded');
+
+            if (currentTestQuestions.length > 0) {
+                displayCurrentQuestion();
+            } else {
+                currentQuestionDiv.innerHTML = "<p>Nenhuma questão disponível para este modo de prova.</p>";
+                nextBtn.disabled = true;
+                finishBtn.style.display = 'none';
+            }
+            updateProgressBar();
+            updateNavigationButtons();
+        }
+
+        function getRandomQuestions(questions, count) {
+            if (questions.length === 0) return [];
+            const availableQuestions = questions.length;
+            const numToSelect = Math.min(count, availableQuestions);
+            const shuffled = [...questions].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, numToSelect);
+        }
+
+        function getMostMistakenQuestions(questions, count) {
+            if (questions.length === 0 || !testStatistics.questionMistakes) return [];
+            const questionsWithMistakes = questions
+                .map(q => ({ ...q, mistakes: testStatistics.questionMistakes[q.id] || 0 }))
+                .filter(q => q.mistakes > 0);
+
+            questionsWithMistakes.sort((a, b) => b.mistakes - a.mistakes); // Mais erradas primeiro
+            
+            const numToSelect = Math.min(count, questionsWithMistakes.length);
+            const selected = questionsWithMistakes.slice(0, numToSelect);
+            return shuffleArray(selected); // Embaralha as selecionadas para não virem sempre na mesma ordem de erro
+        }
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function formatEnunciado(text) {
+            if (!text) return '';
+            const tableRegex = /(\+[-]+\+[\s\S]*\+[-]+\+)/g; 
+            return text.replace(tableRegex, '<pre class="ascii-table">$&</pre>');
+        }
+
+        function displayCurrentQuestion() {
+            instantFeedback.style.display = 'none'; 
+
+            if (currentTestQuestions.length === 0 || currentQuestionIndex >= currentTestQuestions.length) {
+                if (answeredQuestions > 0) actuallyFinishTest(); 
+                else currentQuestionDiv.innerHTML = "<p>Fim das questões ou nenhuma questão carregada.</p>";
+                return;
+            }
+            const question = currentTestQuestions[currentQuestionIndex];
+            let imageHtml = '';
+            if (question.imagem && question.imagem !== 'null') {
+                imageHtml = `<img src="${question.imagem}" alt="Imagem da questão" class="question-image">`;
+            }
+            const formattedEnunciado = formatEnunciado(question.enunciado);
+
+            let starsHtml = '';
+            if (currentQuizIsReviewMode && testStatistics.questionMistakes && testStatistics.questionMistakes[question.id]) {
+                const errorCount = testStatistics.questionMistakes[question.id];
+                if (errorCount > 0) { 
+                    let starCount = 0;
+                    // Lógica de estrelas: 1 estrela para 1-2 erros, 2 estrelas para 3-4 erros, etc.
+                    // Ajuste esta lógica conforme necessário.
+                    if (errorCount >= 1 && errorCount <=2) starCount = 1;
+                    else if (errorCount >= 3 && errorCount <=4) starCount = 2;
+                    else if (errorCount >= 5) starCount = 3; // Máximo de 3 estrelas, por exemplo
+
+                    starCount = Math.min(3, starCount); // Limita o número de estrelas
+
+                    if (starCount > 0) {
+                        starsHtml = `<span class="mistake-stars-container">${'⭐'.repeat(starCount)} <span class="mistake-stars-label">(Nível de Erro)</span></span>`;
+                    }
+                }
+            }
+
+
+            currentQuestionDiv.innerHTML = `
+                <div class="question-container" id="questionContainer">
+                    <div class="question-number">Questão ${currentQuestionIndex + 1} de ${currentTestQuestions.length} ${starsHtml}</div>
+                    <div class="question-text">${formattedEnunciado}</div>
+                    ${imageHtml}
+                    <div class="options" id="optionsContainer"></div>
+                    <div class="correct-answer" id="correctAnswer" style="display:none;">Resposta correta: ${question.correta.toUpperCase()}</div>
+                    ${question.explicacao ? `<div class="explanation" id="explanation" style="display:none;">${formatEnunciado(question.explicacao)}</div>` : ''}
+                </div>`;
+            
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = ''; 
+            
+            Object.entries(question.alternativas).forEach(([letter, text]) => {
+                const optionId = `q${currentQuestionIndex}-opt-${letter}-${Date.now()}`;
+                const label = document.createElement('label');
+                label.className = 'option';
+                label.htmlFor = optionId;
+
+                const radioInput = document.createElement('input');
+                radioInput.type = 'radio';
+                radioInput.id = optionId;
+                radioInput.name = `question-${question.id}`; 
+                radioInput.value = letter;
+
+                if (userAnswers[question.id] !== undefined) { // Se a questão já foi respondida nesta tentativa
+                    radioInput.checked = (userAnswers[question.id] === letter);
+                    radioInput.disabled = true; 
+                     if (userAnswers[question.id] === letter) { 
+                        label.classList.add(userAnswers[question.id] === question.correta ? 'correct' : 'incorrect', 'selected');
+                    } else if (letter === question.correta) { 
+                        label.classList.add('correct');
+                    }
+                }
+                
+                const letterSpan = document.createElement('span');
+                letterSpan.className = 'option-letter-styled';
+                letterSpan.textContent = `${letter.toUpperCase()})`;
+
+                const textSpan = document.createElement('span');
+                textSpan.className = 'option-actual-text';
+                textSpan.textContent = text;
+
+                label.appendChild(radioInput);
+                label.appendChild(letterSpan);
+                label.appendChild(textSpan);
+                optionsContainer.appendChild(label);
+
+                if (!radioInput.disabled) { 
+                    label.addEventListener('click', function() {
+                        if (userAnswers[question.id] !== undefined) return; 
+
+                        userAnswers[question.id] = radioInput.value;
+                        radioInput.checked = true;
+
+                        const isCorrect = radioInput.value === question.correta;
+                        playSound(isCorrect ? correctSound : wrongSound);
+
+                        optionsContainer.querySelectorAll('label.option').forEach(optLabel => {
+                            const optRadio = optLabel.querySelector('input[type="radio"]');
+                            optRadio.disabled = true;
+                            optLabel.classList.remove('selected', 'correct', 'incorrect');
+                            if (optRadio.value === question.correta) {
+                                optLabel.classList.add('correct');
+                            }
+                            if (optRadio.value === radioInput.value) { 
+                                optLabel.classList.add('selected');
+                                if (!isCorrect) {
+                                    optLabel.classList.add('incorrect');
+                                }
+                            }
+                        });
+                        
+                        const qContainer = document.getElementById('questionContainer');
+                        qContainer.classList.remove('correct', 'incorrect');
+                        qContainer.classList.add(isCorrect ? 'correct' : 'incorrect');
+                        
+                        document.getElementById('correctAnswer').style.display = 'block';
+                        const explanationDiv = document.getElementById('explanation');
+                        if (explanationDiv) explanationDiv.style.display = 'block';
+
+                        answeredQuestions++;
+                        answeredInBlock++;
+                        if (isCorrect) correctInBlock++;
+                        
+                        updateProgressBar();
+                        // MODIFICAÇÃO: Mudar bloco de 5 para 10
+                        if (answeredInBlock > 0 && answeredInBlock % 10 === 0) { 
+                            showFeedbackOnNext = true;
+                        }
+                        updateNavigationButtons();
+                    });
+                }
+            });
+
+            const qContainer = document.getElementById('questionContainer');
+            if (userAnswers[question.id] !== undefined) { // Se já respondida, mostrar estado correto/incorreto
+                 document.getElementById('correctAnswer').style.display = 'block';
+                 const explanationDiv = document.getElementById('explanation');
+                 if (explanationDiv) explanationDiv.style.display = 'block';
+                 qContainer.classList.toggle('correct', userAnswers[question.id] === question.correta);
+                 qContainer.classList.toggle('incorrect', userAnswers[question.id] !== question.correta);
+            }
+            
+            updateNavigationButtons();
+            currentQuestionDiv.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
+        }
+
+        function showCongratsPopupWithRandomIframe() {
+            const existingPopup = document.querySelector('.congrats-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // MODIFICAÇÃO: Usar a variável global 'iframes'
+            const randomIframeHtml = iframes[Math.floor(Math.random() * iframes.length)];
+            const popup = document.createElement('div');
+            popup.className = 'congrats-popup';
+            popup.innerHTML = `
+                <div class="congrats-content">
+                    <p class="congrats-message">Parabéns! Você acertou 70% ou mais neste bloco!</p>
+                    <div class="random-iframe">${randomIframeHtml}</div>
+                    <button class="close-popup-button" onclick="this.closest('.congrats-popup').remove()">Fechar</button>
+                </div>`;
+            document.body.appendChild(popup);
+        }
+        
+        function showBlockFeedback() {
+            const totalInBlock = answeredInBlock;
+            if (totalInBlock === 0 && !showFeedbackOnNext) { 
+                 if (currentQuestionIndex < currentTestQuestions.length - 1) {
+                     currentQuestionIndex++; 
+                     displayCurrentQuestion(); 
+                 } else { 
+                     actuallyFinishTest(); 
+                 }
+                return;
+            }
+            showFeedbackOnNext = false; 
+
+            const incorrectInBlock = totalInBlock - correctInBlock;
+            const percentage = totalInBlock > 0 ? Math.round((correctInBlock / totalInBlock) * 100) : 0;
+            
+            feedbackTotal.textContent = totalInBlock;
+            feedbackCorrect.textContent = correctInBlock;
+            feedbackIncorrect.textContent = incorrectInBlock;
+            feedbackPercentageValue.textContent = percentage;
+            
+            feedbackMistakesList.innerHTML = '<h4>Resumo dos erros neste bloco:</h4>';
+            let mistakesContent = '';
+            
+            const blockStartIndex = Math.max(0, (currentQuestionIndex +1) - totalInBlock);
+
+
+            for(let i = 0; i < totalInBlock; i++) {
+                const qIdxInTest = blockStartIndex + i;
+                 if (qIdxInTest >= currentTestQuestions.length) continue;
+
+                const question = currentTestQuestions[qIdxInTest];
+                const userAnswer = userAnswers[question.id];
+
+                if(userAnswer !== undefined && userAnswer !== question.correta) {
+                    mistakesContent += `<div class="feedback-mistake-item">
+                        <div class="feedback-mistake-question">Q${qIdxInTest + 1}: ${question.enunciado.substring(0,50)}...</div>
+                        <div class="feedback-mistake-option feedback-mistake-selected">Sua Resposta: ${userAnswer.toUpperCase()}) ${question.alternativas[userAnswer]}</div>
+                        <div class="feedback-mistake-option feedback-mistake-correct">Correta: ${question.correta.toUpperCase()}) ${question.alternativas[question.correta]}</div>
+                    </div>`;
+                }
+            }
+            if(mistakesContent === '') mistakesContent = "<p>Nenhum erro neste bloco. Ótimo!</p>";
+            feedbackMistakesList.innerHTML += mistakesContent;
+            
+            feedbackPopup.classList.add('active');
+
+            if (percentage >= 70) {
+                setTimeout(showCongratsPopupWithRandomIframe, 300);
+            }
+            
+            answeredInBlock = 0; 
+            correctInBlock = 0;  
+        }
+
+        function showInstantFeedback() {
+            if (currentTestQuestions.length === 0 || currentQuestionIndex >= currentTestQuestions.length) return;
+            const question = currentTestQuestions[currentQuestionIndex];
+            const userAnswer = userAnswers[question.id];
+            if (userAnswer === undefined) { instantFeedback.style.display = 'none'; return; }
+            const isCorrect = userAnswer === question.correta;
+            instantFeedback.textContent = isCorrect ? `✅ Resposta correta! (${question.correta.toUpperCase()})` : `❌ Resposta incorreta! A correta é ${question.correta.toUpperCase()}`;
+            instantFeedback.className = isCorrect ? 'instant-feedback correct' : 'instant-feedback incorrect';
+            instantFeedback.style.display = 'block';
+            setTimeout(() => instantFeedback.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+        }
+
+        function updateProgressBar() {
+            const progress = currentTestQuestions.length > 0 ? (answeredQuestions / currentTestQuestions.length) * 100 : 0;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        function updateNavigationButtons() {
+            prevBtn.disabled = currentQuestionIndex === 0;
+            const questionId = currentTestQuestions[currentQuestionIndex]?.id;
+            const answeredCurrent = userAnswers[questionId] !== undefined;
+            
+            if (currentQuestionIndex === currentTestQuestions.length - 1) { // Se é a última questão
+                nextBtn.style.display = 'none';
+                finishBtn.style.display = 'block';
+                finishBtn.disabled = !answeredCurrent; // Habilita finalizar apenas se a última foi respondida
+            } else { // Não é a última questão
+                nextBtn.style.display = 'block';
+                finishBtn.style.display = 'none';
+                nextBtn.disabled = !answeredCurrent; // Habilita próxima apenas se a atual foi respondida
+            }
+            if(currentQuestionIndex > 0) prevBtn.disabled = false; // Se não for a primeira, botão anterior sempre habilitado
+        }
+
+        function nextQuestion() {
+            showInstantFeedback(); 
+
+            if (showFeedbackOnNext) { 
+                showBlockFeedback(); 
+            } else {
+                if (currentQuestionIndex < currentTestQuestions.length - 1) {
+                    setTimeout(() => { 
+                        currentQuestionIndex++;
+                        displayCurrentQuestion();
+                    }, 300); // Delay apenas se não houver feedback de bloco
+                }
+            }
+        }
+
+
+        function previousQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                displayCurrentQuestion();
+            }
+        }
+        
+        function finishTest() {
+            const currentQuestionId = currentTestQuestions[currentQuestionIndex]?.id;
+            if(userAnswers[currentQuestionId] === undefined && currentQuestionIndex === currentTestQuestions.length -1) {
+                alert("Por favor, responda à questão atual antes de finalizar.");
+                return; 
+            }
+
+            showInstantFeedback(); 
+
+            if (showFeedbackOnNext && currentQuestionIndex === currentTestQuestions.length - 1) {
+                showBlockFeedback(); 
+            } else {
+                actuallyFinishTest(); 
+            }
+        }
+
+        function actuallyFinishTest() {
+             if (hasFinishedCurrentTestProcessing) {
+                console.warn("actuallyFinishTest: Processamento já realizado para esta tentativa. Exibindo resultados existentes.");
+                const lastAttempt = testStatistics.attemptsHistory && testStatistics.attemptsHistory.length > 0 
+                                     ? testStatistics.attemptsHistory[testStatistics.attemptsHistory.length -1]
+                                     : null;
+                if(lastAttempt && typeof lastAttempt.total === 'number' && lastAttempt.total > 0) { 
+                    showResultsPage(parseFloat(lastAttempt.score), (lastAttempt.correct / lastAttempt.total) * 100, lastAttempt.correct, lastAttempt.total);
+                } else { 
+                    showResultsPage(0, 0, 0, 0); 
+                }
+                return;
+            }
+
+
+            const delay = userAnswers[currentTestQuestions[currentQuestionIndex]?.id] !== undefined ? 300 : 0;
+            setTimeout(() => {
+                // currentFileId é sempre EMBEDDED_QUIZ_ID, não precisa checar se é null
+                
+                testStatistics.correct = [];
+                testStatistics.incorrect = [];
+                testStatistics.performanceByArea = {}; 
+                
+                currentTestQuestions.forEach((question) => {
+                    const userAnswer = userAnswers[question.id]; 
+                    if (userAnswer === undefined) return; 
+
+                    if (question.area) {
+                        if (!testStatistics.performanceByArea[question.area]) {
+                            testStatistics.performanceByArea[question.area] = { correct: 0, total: 0 };
+                        }
+                        testStatistics.performanceByArea[question.area].total++;
+                    }
+
+                    if (userAnswer === question.correta) {
+                        testStatistics.correct.push(question.id);
+                        if (question.area) {
+                            testStatistics.performanceByArea[question.area].correct++;
+                        }
+                    } else {
+                        testStatistics.incorrect.push(question.id);
+                        testStatistics.questionMistakes[question.id] = (testStatistics.questionMistakes[question.id] || 0) + 1;
+                    }
+                });
+                
+                const correctCount = testStatistics.correct.length;
+                const totalAnsweredInTest = correctCount + testStatistics.incorrect.length;
+                
+                const correctPercentage = totalAnsweredInTest > 0 ? ((correctCount / totalAnsweredInTest) * 100) : 0; 
+                const finalScore = totalAnsweredInTest > 0 ? ((correctCount / totalAnsweredInTest) * 10) : 0; 
+                
+                if (totalAnsweredInTest > 0) { // Salva no histórico apenas se houver respostas
+                    if (!testStatistics.attemptsHistory) testStatistics.attemptsHistory = [];
+                    testStatistics.attemptsHistory.push({
+                        date: new Date().toLocaleString(),
+                        correct: correctCount,
+                        total: totalAnsweredInTest,
+                        score: finalScore.toFixed(1),
+                        attemptNumber: testStatistics.attemptCount, 
+                        questionIdsInAttempt: currentTestQuestions.map(q => q.id),
+                        userAnswersInAttempt: {...userAnswers} 
+                    });
+                }
+                
+                saveStats(testStatistics); // Salva estatísticas atualizadas
+                hasFinishedCurrentTestProcessing = true; 
+                showResultsPage(finalScore, correctPercentage, correctCount, totalAnsweredInTest);
+            }, delay);
+        }
+
+        function showResultsPage(score, percentage, correctCount, totalAttempted) {
+            quizPage.style.display = 'none';
+            resultsPage.style.display = 'block';
+
+            const resultsMainBox = document.getElementById('results-main-box');
+            resultsMainBox.classList.remove('results-box-bad', 'results-box-average', 'results-box-good');
+            if (score < 6) {
+                resultsMainBox.classList.add('results-box-bad');
+            } else if (score < 8) {
+                resultsMainBox.classList.add('results-box-average');
+            } else {
+                resultsMainBox.classList.add('results-box-good');
+            }
+
+            const finalScoreBox = document.getElementById('finalScoreText');
+            finalScoreBox.textContent = `${score.toFixed(1)}`;
+            finalScoreBox.className = 'final-score-value-box'; 
+            if (score < 6) {
+                finalScoreBox.classList.add('score-bad');
+            } else if (score < 8) {
+                finalScoreBox.classList.add('score-average');
+            } else {
+                finalScoreBox.classList.add('score-good');
+            }
+            
+            finalPercentageText.innerHTML = `Você acertou <strong>${correctCount}</strong> de <strong>${totalAttempted}</strong> questões respondidas (<strong>${percentage.toFixed(1)}%</strong>)`;
+            
+            destroyCharts();
+            generateCharts(); 
+            generateQuestionsAnalysis(); 
+            resetStatsBtn.disabled = false; // Habilita o botão de reset, pois há um resultado para o simulado
+            
+            const resultsTitleEl = document.getElementById('resultsTitle');
+            if(resultsTitleEl) {
+                resultsTitleEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function destroyCharts() { 
+            Object.keys(charts).forEach(key => {
+                if (charts[key] && typeof charts[key].destroy === 'function') {
+                    charts[key].destroy();
+                }
+                charts[key] = null;
+            });
+        }
+        
+        function updateCharts() { 
+            destroyCharts(); 
+            setTimeout(() => {
+                generateCharts();
+            }, 50);
+        }
+
+        function generateCharts() {
+            // currentFileId é sempre EMBEDDED_QUIZ_ID, não precisa checar
+            destroyCharts(); 
+            
+            const textColor = getComputedStyle(document.body).getPropertyValue('--text-primary').trim();
+            const borderColorCSS = getComputedStyle(document.body).getPropertyValue('--border-color').trim();
+            const correctColor = getComputedStyle(document.body).getPropertyValue('--accent-color').trim();
+            const incorrectColor = getComputedStyle(document.body).getPropertyValue('--danger-color').trim();
+            const primaryColor = getComputedStyle(document.body).getPropertyValue('--primary-color').trim();
+            const bgCardColor = getComputedStyle(document.body).getPropertyValue('--bg-card').trim();
+
+            const correctAnswersCount = testStatistics.correct.length;
+            const incorrectAnswersCount = testStatistics.incorrect.length;
+
+            // Gráfico de Desempenho Geral (Pizza)
+            if (correctAnswersCount > 0 || incorrectAnswersCount > 0) { // Só mostra se houver dados
+                charts.performance = new Chart(document.getElementById('performanceChart').getContext('2d'), {
+                    type: 'pie',
+                    data: {
+                        labels: ['Acertos', 'Erros'],
+                        datasets: [{
+                            data: [correctAnswersCount, incorrectAnswersCount],
+                            backgroundColor: [correctColor, incorrectColor],
+                            borderColor: bgCardColor, borderWidth: 2
+                        }]
+                    },
+                    options: getChartOptions('Desempenho na Prova Atual', textColor)
+                });
+            }
+
+
+            // Gráfico de Progresso nas Tentativas (Barras)
+            const attemptLabels = (testStatistics.attemptsHistory || []).map((a, i) => `Tent. ${a.attemptNumber || i + 1}`);
+            const attemptScores = (testStatistics.attemptsHistory || []).map(a => parseFloat(a.score));
+            if (attemptLabels.length > 0) { // Só mostra se houver histórico
+                charts.progress = new Chart(document.getElementById('progressChart').getContext('2d'), {
+                    type: 'bar', 
+                    data: {
+                        labels: attemptLabels,
+                        datasets: [{
+                            label: 'Nota (0-10)', 
+                            data: attemptScores, 
+                            backgroundColor: primaryColor + 'B3', 
+                            borderColor: primaryColor,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: getChartOptions('Progresso nas Tentativas (Neste Simulado)', textColor, {
+                        scales: { 
+                            y: { beginAtZero: true, max: 10, ticks: { color: textColor, stepSize: 1 }, grid: { color: borderColorCSS + '80' } },
+                            x: { ticks: { color: textColor }, grid: { color: borderColorCSS + '80' } } 
+                        },
+                        animation: { // Para mostrar o valor em cima da barra
+                            onComplete: function() {
+                                const chartInstance = this;
+                                const ctx = chartInstance.ctx;
+                                const fontFam = getComputedStyle(document.body).getPropertyValue('--font-main').split(',')[0].trim() || 'Poppins';
+                                ctx.font = `600 11px ${fontFam}`;
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'bottom';
+                                ctx.fillStyle = textColor;
+
+                                this.data.datasets.forEach(function(dataset, i) {
+                                    const meta = chartInstance.getDatasetMeta(i);
+                                    if (!meta.hidden) {
+                                        meta.data.forEach(function(bar, index) {
+                                            const data = dataset.data[index];
+                                            if (data !== null && data !== undefined) {
+                                                const score = parseFloat(data).toFixed(1);
+                                                ctx.fillText(score, bar.x, bar.y - 6); 
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        }
+                    })
+                });
+            }
+            
+            // Gráfico de Acertos por Área (Barras Horizontais)
+            const areaLabels = Object.keys(testStatistics.performanceByArea || {});
+            const areaPerformance = areaLabels.map(area => {
+                const data = testStatistics.performanceByArea[area];
+                return data.total > 0 ? (data.correct / data.total) * 100 : 0;
+            });
+            
+            const areasChartCard = document.getElementById('areasChartCard');
+            if (areasChartCard && areaLabels.length > 0) { // Só mostra se houver áreas e dados
+                areasChartCard.style.display = 'block'; 
+                charts.areas = new Chart(document.getElementById('areasChart').getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: areaLabels,
+                        datasets: [{
+                            label: '% Acerto por Área (Prova Atual)', data: areaPerformance, backgroundColor: primaryColor + 'B3',
+                            borderColor: primaryColor, borderWidth: 1
+                        }]
+                    },
+                    options: getChartOptions('Desempenho por Área (Prova Atual)', textColor, {
+                        indexAxis: 'y',
+                        scales: { 
+                            y: { ticks: { color: textColor }, grid: { color: borderColorCSS + '80' } },
+                            x: { beginAtZero: true, max: 100, ticks: { color: textColor, callback: function(value) { return value + "%" } }, grid: { color: borderColorCSS + '80' } }
+                        }
+                    })
+                });
+            } else if (areasChartCard) {
+                areasChartCard.style.display = 'none'; 
+            }
+
+            // Gráfico de Questões Mais Erradas (Barras)
+            const mistakeCountsOverall = {};
+            Object.entries(testStatistics.questionMistakes || {}).forEach(([qId, count]) => {
+                if (count > 0) {
+                    const originalQuestionIndex = allQuestions.findIndex(q => q.id === qId); 
+                    if (originalQuestionIndex !== -1) { 
+                        mistakeCountsOverall[`Q${originalQuestionIndex + 1}`] = count;
+                    }
+                }
+            });
+            const sortedMistakesOverall = Object.entries(mistakeCountsOverall)
+                                                 .sort(([,a],[,b]) => b-a) // Ordena por mais erradas
+                                                 .slice(0,10); // Pega o Top 10
+            
+            if (sortedMistakesOverall.length > 0) { // Só mostra se houver erros
+                charts.mistakes = new Chart(document.getElementById('mistakesChart').getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: sortedMistakesOverall.map(item => item[0]),
+                        datasets: [{
+                            label: 'Vezes Erradas (Top 10 - Este Simulado)', data: sortedMistakesOverall.map(item => item[1]),
+                            backgroundColor: incorrectColor + 'B3', borderColor: incorrectColor, borderWidth: 1
+                        }]
+                    },
+                    options: getChartOptions('Questões Mais Erradas (Este Simulado)', textColor, {
+                        scales: { 
+                            y: { beginAtZero: true, ticks: { color: textColor, stepSize: 1 }, grid: { color: borderColorCSS + '80' } },
+                            x: { ticks: { color: textColor }, grid: { color: borderColorCSS + '80' } } 
+                        },
+                        onClick: (event, elements) => { 
+                            if (elements.length > 0) {
+                                const chartElement = elements[0];
+                                const index = chartElement.index;
+                                const questionLabel = charts.mistakes.data.labels[index]; 
+                                const questionNumberStr = questionLabel.substring(1); 
+                                const questionNumber = parseInt(questionNumberStr); 
+                                if (!isNaN(questionNumber) && questionNumber > 0 && questionNumber <= allQuestions.length) {
+                                    const questionData = allQuestions[questionNumber - 1]; 
+                                    displayQuestionInPopup(questionData);
+                                } else {
+                                    console.error("Não foi possível encontrar a questão para o label:", questionLabel);
+                                }
+                            }
+                        }
+                    })
+                });
+            }
+            generateAdditionalCharts();
+        }
+
+        function generateAdditionalCharts() {
+            const textColor = getComputedStyle(document.body).getPropertyValue('--text-primary').trim();
+            const borderColorCSS = getComputedStyle(document.body).getPropertyValue('--border-color').trim();
+            const bgCardColor = getComputedStyle(document.body).getPropertyValue('--bg-card').trim();
+
+            // Gráfico de Tamanho da Questão
+            const SMALL_Q_THRESHOLD_NEW = 400; 
+            const MEDIUM_Q_THRESHOLD_NEW = 800; 
+            let smallQ = 0, mediumQ = 0, longQ = 0;
+            
+            currentTestQuestions.forEach(q => {
+                let totalLength = q.enunciado ? q.enunciado.length : 0;
+                if (q.alternativas) {
+                    Object.values(q.alternativas).forEach(altText => {
+                        if (altText) totalLength += altText.length;
+                    });
+                }
+                if (totalLength < SMALL_Q_THRESHOLD_NEW) smallQ++;
+                else if (totalLength < MEDIUM_Q_THRESHOLD_NEW) mediumQ++;
+                else longQ++;
+            });
+
+            const qSizeColors = [
+                'rgba(75, 192, 192, 0.7)',  
+                'rgba(255, 206, 86, 0.7)', 
+                'rgba(255, 99, 132, 0.7)'   
+            ];
+            const qSizeBorderColors = [
+                'rgba(75, 192, 192, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(255, 99, 132, 1)'
+            ];
+
+            if (smallQ > 0 || mediumQ > 0 || longQ > 0) {
+                charts.questionSizeChart = new Chart(document.getElementById('questionSizeChart').getContext('2d'), {
+                    type: 'bar', 
+                    data: {
+                        labels: [`Pequenas (<${SMALL_Q_THRESHOLD_NEW}c)`, `Médias (${SMALL_Q_THRESHOLD_NEW}-${MEDIUM_Q_THRESHOLD_NEW}c)`, `Longas (>${MEDIUM_Q_THRESHOLD_NEW}c)`],
+                        datasets: [{ 
+                            label: 'Quantidade de Questões', 
+                            data: [smallQ, mediumQ, longQ],
+                            backgroundColor: qSizeColors,
+                            borderColor: qSizeBorderColors,
+                            borderWidth: 1 
+                        }]
+                    },
+                    options: getChartOptions('Tamanho de Questão (Enunciado + Alternativas)', textColor, {
+                        indexAxis: 'y', 
+                        scales: { 
+                            x: { beginAtZero: true, ticks: { color: textColor, stepSize: Math.max(1, Math.ceil(Math.max(1, smallQ,mediumQ,longQ) / 5)) }, grid: { color: borderColorCSS + '80' } }, 
+                            y: { ticks: { color: textColor }, grid: { display: false } } 
+                        },
+                        plugins: { legend: { display: false } }
+                    })
+                });
+            }
+
+
+            // Gráfico de Tempo por Questão (Simulado - dados fictícios por enquanto)
+            const timeLabels = currentTestQuestions.slice(0,10).map((q,i) => { // Mostra para as 10 primeiras da prova atual
+                const globalIndex = allQuestions.findIndex(aq => aq.id === q.id);
+                return `Q${globalIndex !== -1 ? globalIndex + 1 : i + 1}`; // Usa o índice global se possível
+            });
+            // TODO: Implementar medição real de tempo por questão se desejado.
+            // Por agora, dados aleatórios apenas para visualização.
+            const timeData = Array.from({length: timeLabels.length}, () => Math.floor(Math.random() * 90) + 30); 
+            
+            if (timeLabels.length > 0) {
+                charts.timePerQuestion = new Chart(document.getElementById('timePerQuestionChart').getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: timeLabels,
+                        datasets: [{ 
+                            label: 'Tempo (s)', 
+                            data: timeData,
+                            backgroundColor: 'rgba(54, 162, 235, 0.7)', 
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1 
+                        }]
+                    },
+                    options: getChartOptions('Tempo por Questão (Simulado - Amostra)', textColor, {
+                        scales: { 
+                            y: { beginAtZero: true, ticks: { color: textColor }, grid: { color: borderColorCSS + '80' } },
+                            x: { ticks: { color: textColor }, grid: { color: borderColorCSS + '80' } } 
+                        },
+                        plugins: { legend: { display: false } }
+                    })
+                });
+            }
+        }
+
+        function getChartOptions(title, textColor, customOptions = {}) {
+            const gridColor = getComputedStyle(document.body).getPropertyValue('--border-color').trim() + '60'; // Grid mais sutil
+
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: textColor, font: { family: 'Poppins', size: 12 } }
+                    },
+                    title: { display: true, text: title, color: textColor, font: { family: 'Poppins', size: 14, weight: '600' }, padding: {bottom: 10} }
+                },
+                scales: customOptions.scales ? { // Configuração de eixos se fornecida
+                    y: {
+                        ...(customOptions.scales.y || {}),
+                        ticks: { ...(customOptions.scales.y?.ticks || {}), color: textColor },
+                        grid: { ...(customOptions.scales.y?.grid || {}), color: gridColor, drawBorder: false }
+                    },
+                    x: {
+                        ...(customOptions.scales.x || {}),
+                        ticks: { ...(customOptions.scales.x?.ticks || {}), color: textColor },
+                        grid: { ...(customOptions.scales.x?.grid || {}), color: gridColor, drawBorder: false }
+                    }
+                } : undefined, // Se não houver custom scales, não define a propriedade scales (útil para gráficos de pizza)
+                ...customOptions // Permite sobrescrever ou adicionar outras opções
+            };
+        }
+        
+        function displayQuestionInPopup(question) {
+            let imageHtml = question.imagem && question.imagem !== 'null' ? `<img src="${question.imagem}" alt="Imagem da questão" class="question-image" style="max-height: 200px; margin-bottom: 15px;">` : '';
+            
+            let optionsHtml = '<div class="options" style="gap: 8px; pointer-events: none;">'; // Desabilita cliques nas opções do popup
+            Object.entries(question.alternativas).forEach(([letter, text]) => {
+                let optClass = 'option';
+                let optInnerStyle = 'margin-bottom: 8px; border-width: 1px; padding: 10px;';
+                
+                if (letter === question.correta) {
+                    optClass += ' correct'; 
+                    // Estilo para destacar a correta no popup
+                    optInnerStyle += `background-color: var(--accent-light); border-left-color: var(--accent-color); border-left-width: 4px;`;
+                } else {
+                     optInnerStyle += `background-color: transparent;`; 
+                }
+
+                optionsHtml += `<div class="${optClass}" style="${optInnerStyle}">
+                                     <span class="option-letter-styled">${letter.toUpperCase()})</span>
+                                     <span class="option-actual-text" style="color: var(--text-primary);">${text}</span>
+                                 </div>`;
+            });
+            optionsHtml += '</div>';
+
+            const formattedEnunciado = formatEnunciado(question.enunciado);
+            const formattedExplicacao = question.explicacao ? formatEnunciado(question.explicacao) : '';
+
+            questionDetailContent.innerHTML = `
+                <div class="question-container" style="border: none; box-shadow: none; padding:0; margin-bottom:0;">
+                    <h4 style="color: var(--primary-color); text-align:left; margin-bottom:10px;">Detalhe da Questão</h4>
+                    <div class="question-text" style="margin-bottom:15px; font-size: 1rem;">${formattedEnunciado}</div>
+                    ${imageHtml}
+                    ${optionsHtml}
+                    ${formattedExplicacao ? `<div class="explanation" style="display:block; margin-top: 15px; padding:10px; background-color: var(--bg-main); border-radius: 6px;"><strong style="color:var(--text-secondary);">Explicação:</strong><br>${formattedExplicacao}</div>` : ''}
+                </div>
+            `;
+            questionDetailPopup.classList.add('active');
+        }
+
+        function closeQuestionDetailPopup() {
+            questionDetailPopup.classList.remove('active');
+            questionDetailContent.innerHTML = ''; 
+        }
+
+        function generateQuestionsAnalysis() {
+            questionsAnalysis.innerHTML = ''; 
+            currentTestQuestions.forEach((question, index) => {
+                const userAnswer = userAnswers[question.id]; 
+                if (userAnswer === undefined) return; // Só analisa questões respondidas na tentativa atual
+
+                const isCorrect = userAnswer === question.correta;
+                const questionDiv = document.createElement('div');
+                
+                questionDiv.className = `question-container ${isCorrect ? 'correct' : 'incorrect'}`;
+                questionDiv.style.marginBottom = '20px';
+
+                let imageHtml = question.imagem && question.imagem !== 'null' ? `<img src="${question.imagem}" alt="Imagem da questão" class="question-image">` : '';
+                
+                let optionsHtml = Object.entries(question.alternativas).map(([letter, text]) => {
+                    let optClass = 'option'; 
+                    let optStyle = 'pointer-events: none; transform: none; margin-bottom: 8px; border-width: 1px;'; 
+
+                    if (letter === question.correta) optClass += ' correct'; 
+                    if (letter === userAnswer && !isCorrect) optClass += ' selected incorrect'; 
+                    else if (letter === userAnswer && isCorrect) optClass += ' selected';
+
+                    return `<div class="${optClass}" style="${optStyle}">
+                                 <span class="option-letter-styled">${letter.toUpperCase()})</span>
+                                 <span class="option-actual-text" style="color: var(--text-primary);">${text}</span>
+                             </div>`;
+                }).join('');
+
+                let correctAnswerBox = '';
+                if (!isCorrect) { // Mostra a caixa de resposta correta apenas se o usuário errou
+                    correctAnswerBox = `<div class="analysis-correct-answer">
+                        <strong>Resposta Correta: ${question.correta.toUpperCase()})</strong> ${question.alternativas[question.correta]}
+                    </div>`;
+                }
+
+                const formattedEnunciado = formatEnunciado(question.enunciado);
+                const formattedExplicacao = question.explicacao ? formatEnunciado(question.explicacao) : '';
+
+                questionDiv.innerHTML = `
+                    <div class="question-number">Questão ${index + 1} - ${isCorrect ? 'Acertou' : 'Errou'}</div>
+                    <div class="question-text" style="margin-bottom:15px;">${formattedEnunciado}</div>
+                    ${imageHtml}
+                    <div class="options" style="gap: 0;">${optionsHtml}</div>
+                    ${correctAnswerBox} 
+                    ${formattedExplicacao ? `<div class="explanation" style="display:block; margin-top: 15px;">${formattedExplicacao}</div>` : ''}`;
+                questionsAnalysis.appendChild(questionDiv);
+            });
+        }
+        
+        function startNewAttempt(isMistakesQuizForce = false) {
+            if (allQuestions.length === 0) { 
+                alert("Nenhuma questão carregada. Verifique a configuração das questões embutidas.");
+                return;
+            }
+            
+             if (quizStartOptionsPopup.classList.contains('active')) {
+                closeQuizOptionsPopup();
+            }
+            
+            if (isMistakesQuizForce) {
+                const distinctMistakesCount = Object.values(testStatistics.questionMistakes || {}).filter(count => count > 0).length;
+                if (distinctMistakesCount > 0) { 
+                    initializeTest(true, 10); 
+                } else {
+                     alert("Não há questões erradas para revisar neste simulado. Iniciando prova normal.");
+                    initializeTest(false, Math.min(40, allQuestions.length));
+                }
+            } else {
+                initializeTest(false, Math.min(40, allQuestions.length));
+            }
+        }
+
+        // REMOVIDA: function loadNewFile() { location.reload(); }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            quizPage.style.display = 'none'; 
+            resultsPage.style.display = 'none'; // Esconde a página de resultados inicialmente
+            
+            loadEmbeddedQuizAndShowOptions(); // Carrega o simulado embutido e mostra opções
+
+            if (document.body.classList.contains('dark-mode')) {
+                darkModeText.textContent = 'Modo Claro';
+                darkModeTextResults.textContent = 'Modo Claro';
+            } else {
+                darkModeText.textContent = 'Modo Escuro';
+                darkModeTextResults.textContent = 'Modo Escuro';
+            }
+        });
+
+    </script>
+</body>
+</html>
